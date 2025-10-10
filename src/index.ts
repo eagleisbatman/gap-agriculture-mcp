@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
   exposedHeaders: ['Mcp-Session-Id'],
-  allowedHeaders: ['Content-Type', 'mcp-session-id', 'Authorization']
+  allowedHeaders: ['Content-Type', 'mcp-session-id', 'Authorization', 'X-Farm-Latitude', 'X-Farm-Longitude']
 }));
 
 // Environment variables
@@ -63,6 +63,16 @@ app.get('/', (req, res) => {
 // Main MCP endpoint
 app.post('/mcp', async (req, res) => {
   try {
+    // Extract default coordinates from custom headers (for testing convenience)
+    const headerLat = req.headers['x-farm-latitude'] as string;
+    const headerLon = req.headers['x-farm-longitude'] as string;
+    const defaultLatitude = headerLat ? parseFloat(headerLat) : undefined;
+    const defaultLongitude = headerLon ? parseFloat(headerLon) : undefined;
+
+    if (defaultLatitude && defaultLongitude) {
+      console.log(`[MCP] Using default coordinates from headers: lat=${defaultLatitude}, lon=${defaultLongitude}`);
+    }
+
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined // Stateless
     });
@@ -76,15 +86,29 @@ app.post('/mcp', async (req, res) => {
     // Tool 1: Get Weather Forecast
     server.tool(
       'get_weather_forecast',
-      'Get weather forecast for a specific location. Provide latitude and longitude coordinates.',
+      'Get weather forecast for a specific location. Provide latitude and longitude coordinates, or they will be read from request headers if configured.',
       {
-        latitude: z.number().min(-90).max(90).describe('Latitude coordinate (e.g., -1.404244 for Kenya)'),
-        longitude: z.number().min(-180).max(180).describe('Longitude coordinate (e.g., 35.008688 for Kenya)'),
+        latitude: z.number().min(-90).max(90).optional().describe('Latitude coordinate (e.g., -1.404244 for Kenya). Optional if provided in headers.'),
+        longitude: z.number().min(-180).max(180).optional().describe('Longitude coordinate (e.g., 35.008688 for Kenya). Optional if provided in headers.'),
         days: z.number().min(1).max(14).default(7).optional().describe('Number of days to forecast (1-14, default: 7)')
       },
       async ({ latitude, longitude, days = 7 }) => {
         try {
-          console.log(`[MCP Tool] get_weather_forecast called: lat=${latitude}, lon=${longitude}, days=${days}`);
+          // Use header defaults if coordinates not provided
+          const lat = latitude ?? defaultLatitude;
+          const lon = longitude ?? defaultLongitude;
+
+          if (lat === undefined || lon === undefined) {
+            return {
+              content: [{
+                type: 'text',
+                text: 'ERROR: Latitude and longitude are required. Please provide coordinates either as parameters or configure them in the MCP server headers (X-Farm-Latitude, X-Farm-Longitude).'
+              }],
+              isError: true
+            };
+          }
+
+          console.log(`[MCP Tool] get_weather_forecast called: lat=${lat}, lon=${lon}, days=${days}`);
 
           if (!gapClient) {
             return {
@@ -96,20 +120,20 @@ app.post('/mcp', async (req, res) => {
             };
           }
 
-          const data = await gapClient.getForecast(latitude, longitude, days);
+          const data = await gapClient.getForecast(lat, lon, days);
 
           if (data.count === 0) {
             return {
               content: [{
                 type: 'text',
-                text: `No weather data available for coordinates (${latitude}, ${longitude}). Please check if the coordinates are correct.`
+                text: `No weather data available for coordinates (${lat}, ${lon}). Please check if the coordinates are correct.`
               }],
               isError: false
             };
           }
 
           // Format the response
-          let response = `Weather Forecast for (${latitude}, ${longitude})\n`;
+          let response = `Weather Forecast for (${lat}, ${lon})\n`;
           response += `Period: ${days} days\n\n`;
 
           data.results.forEach((day) => {
@@ -146,14 +170,28 @@ app.post('/mcp', async (req, res) => {
       'get_farming_advisory',
       'Get agricultural advisory based on weather forecast. Includes planting recommendations and risk alerts.',
       {
-        latitude: z.number().min(-90).max(90).describe('Latitude coordinate'),
-        longitude: z.number().min(-180).max(180).describe('Longitude coordinate'),
+        latitude: z.number().min(-90).max(90).optional().describe('Latitude coordinate. Optional if provided in headers.'),
+        longitude: z.number().min(-180).max(180).optional().describe('Longitude coordinate. Optional if provided in headers.'),
         crop: z.enum(['maize', 'wheat', 'rice', 'beans', 'vegetables', 'tea', 'coffee']).optional().describe('Type of crop being grown'),
         forecast_days: z.number().min(7).max(14).default(14).optional().describe('Days to look ahead')
       },
       async ({ latitude, longitude, crop, forecast_days = 14 }) => {
         try {
-          console.log(`[MCP Tool] get_farming_advisory called: lat=${latitude}, lon=${longitude}, crop=${crop}`);
+          // Use header defaults if coordinates not provided
+          const lat = latitude ?? defaultLatitude;
+          const lon = longitude ?? defaultLongitude;
+
+          if (lat === undefined || lon === undefined) {
+            return {
+              content: [{
+                type: 'text',
+                text: 'ERROR: Latitude and longitude are required. Please provide coordinates either as parameters or configure them in the MCP server headers (X-Farm-Latitude, X-Farm-Longitude).'
+              }],
+              isError: true
+            };
+          }
+
+          console.log(`[MCP Tool] get_farming_advisory called: lat=${lat}, lon=${lon}, crop=${crop}`);
 
           if (!gapClient) {
             return {
@@ -165,7 +203,7 @@ app.post('/mcp', async (req, res) => {
             };
           }
 
-          const data = await gapClient.getFarmingForecast(latitude, longitude, forecast_days);
+          const data = await gapClient.getFarmingForecast(lat, lon, forecast_days);
 
           if (data.count === 0) {
             return {
@@ -184,7 +222,7 @@ app.post('/mcp', async (req, res) => {
           const totalPrecip = results.reduce((sum, r) => sum + (Number(r.precipitation) || 0), 0);
           const avgHumidity = results.reduce((sum, r) => sum + (Number(r.relative_humidity) || 0), 0) / results.length;
 
-          let advisory = `🌾 Agricultural Advisory for (${latitude}, ${longitude})\n`;
+          let advisory = `🌾 Agricultural Advisory for (${lat}, ${lon})\n`;
           if (crop) advisory += `Crop: ${crop.toUpperCase()}\n`;
           advisory += `Forecast Period: ${forecast_days} days\n\n`;
 
@@ -285,13 +323,27 @@ app.post('/mcp', async (req, res) => {
       'get_planting_recommendation',
       'Get recommendation on whether current conditions are good for planting specific crops',
       {
-        latitude: z.number().min(-90).max(90).describe('Latitude coordinate'),
-        longitude: z.number().min(-180).max(180).describe('Longitude coordinate'),
+        latitude: z.number().min(-90).max(90).optional().describe('Latitude coordinate. Optional if provided in headers.'),
+        longitude: z.number().min(-180).max(180).optional().describe('Longitude coordinate. Optional if provided in headers.'),
         crop: z.enum(['maize', 'wheat', 'rice', 'beans', 'vegetables', 'tea', 'coffee']).describe('Crop to plant')
       },
       async ({ latitude, longitude, crop }) => {
         try {
-          console.log(`[MCP Tool] get_planting_recommendation called: lat=${latitude}, lon=${longitude}, crop=${crop}`);
+          // Use header defaults if coordinates not provided
+          const lat = latitude ?? defaultLatitude;
+          const lon = longitude ?? defaultLongitude;
+
+          if (lat === undefined || lon === undefined) {
+            return {
+              content: [{
+                type: 'text',
+                text: 'ERROR: Latitude and longitude are required. Please provide coordinates either as parameters or configure them in the MCP server headers (X-Farm-Latitude, X-Farm-Longitude).'
+              }],
+              isError: true
+            };
+          }
+
+          console.log(`[MCP Tool] get_planting_recommendation called: lat=${lat}, lon=${lon}, crop=${crop}`);
 
           if (!gapClient) {
             return {
@@ -304,7 +356,7 @@ app.post('/mcp', async (req, res) => {
           }
 
           // Get next 14 days forecast
-          const data = await gapClient.getFarmingForecast(latitude, longitude, 14);
+          const data = await gapClient.getFarmingForecast(lat, lon, 14);
 
           if (data.count === 0) {
             return {
@@ -324,7 +376,7 @@ app.post('/mcp', async (req, res) => {
           const avgHumidity = firstWeek.reduce((sum, r) => sum + (Number(r.relative_humidity) || 0), 0) / firstWeek.length;
 
           let recommendation = `🌱 Planting Recommendation for ${crop.toUpperCase()}\n`;
-          recommendation += `Location: (${latitude}, ${longitude})\n\n`;
+          recommendation += `Location: (${lat}, ${lon})\n\n`;
 
           recommendation += `Current Conditions (Next 7 days):\n`;
           recommendation += `  Temperature: ${avgTemp.toFixed(1)}°C\n`;
@@ -506,13 +558,27 @@ app.post('/mcp', async (req, res) => {
       'get_irrigation_advisory',
       'Get recommendations for irrigation scheduling based on weather forecast',
       {
-        latitude: z.number().min(-90).max(90).describe('Latitude coordinate'),
-        longitude: z.number().min(-180).max(180).describe('Longitude coordinate'),
+        latitude: z.number().min(-90).max(90).optional().describe('Latitude coordinate. Optional if provided in headers.'),
+        longitude: z.number().min(-180).max(180).optional().describe('Longitude coordinate. Optional if provided in headers.'),
         crop: z.enum(['maize', 'wheat', 'rice', 'beans', 'vegetables', 'tea', 'coffee']).optional().describe('Type of crop')
       },
       async ({ latitude, longitude, crop }) => {
         try {
-          console.log(`[MCP Tool] get_irrigation_advisory called: lat=${latitude}, lon=${longitude}, crop=${crop}`);
+          // Use header defaults if coordinates not provided
+          const lat = latitude ?? defaultLatitude;
+          const lon = longitude ?? defaultLongitude;
+
+          if (lat === undefined || lon === undefined) {
+            return {
+              content: [{
+                type: 'text',
+                text: 'ERROR: Latitude and longitude are required. Please provide coordinates either as parameters or configure them in the MCP server headers (X-Farm-Latitude, X-Farm-Longitude).'
+              }],
+              isError: true
+            };
+          }
+
+          console.log(`[MCP Tool] get_irrigation_advisory called: lat=${lat}, lon=${lon}, crop=${crop}`);
 
           if (!gapClient) {
             return {
@@ -524,7 +590,7 @@ app.post('/mcp', async (req, res) => {
             };
           }
 
-          const data = await gapClient.getForecast(latitude, longitude, 7);
+          const data = await gapClient.getForecast(lat, lon, 7);
 
           if (data.count === 0) {
             return {
@@ -542,7 +608,7 @@ app.post('/mcp', async (req, res) => {
           const avgHumidity = results.reduce((sum, r) => sum + (Number(r.relative_humidity) || 0), 0) / results.length;
 
           let advisory = `💧 Irrigation Advisory\n`;
-          advisory += `Location: (${latitude}, ${longitude})\n`;
+          advisory += `Location: (${lat}, ${lon})\n`;
           if (crop) advisory += `Crop: ${crop.toUpperCase()}\n`;
           advisory += `\n`;
 
