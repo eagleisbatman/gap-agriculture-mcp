@@ -133,7 +133,7 @@ This is the main endpoint for Model Context Protocol communication.
 
 3. **Add Environment Variables** in Railway dashboard:
    ```
-   GAP_API_TOKEN=d5df1c5d5472a70940bac900bc6b337064f728b19984f40803677f86dac09e3f
+   GAP_API_TOKEN=YOUR_GAP_API_TOKEN_HERE
    NODE_ENV=production
    ALLOWED_ORIGINS=https://your-app.vercel.app,https://your-domain.com
    ```

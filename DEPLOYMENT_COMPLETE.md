@@ -25,7 +25,7 @@ Visit: https://railway.app/
 1. In Railway project, go to **"Variables"** tab
 2. Add this environment variable:
    ```
-   GAP_API_TOKEN=d5df1c5d5472a70940bac900bc6b337064f728b19984f40803677f86dac09e3f
+   GAP_API_TOKEN=YOUR_GAP_API_TOKEN_HERE
    ```
 3. Click **"Add"** or **"Save"**
 
