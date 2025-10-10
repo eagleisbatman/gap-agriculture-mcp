@@ -21,13 +21,14 @@ const GAP_API_TOKEN = process.env.GAP_API_TOKEN || '';
 const GAP_API_BASE_URL = process.env.GAP_API_BASE_URL || 'https://gap.tomorrownow.org/api/v1';
 const PORT = process.env.PORT || 3000;
 
+// Warn if token is missing, but don't crash - this allows healthcheck to work
 if (!GAP_API_TOKEN) {
-  console.error('ERROR: GAP_API_TOKEN environment variable is required');
-  process.exit(1);
+  console.warn('⚠️  WARNING: GAP_API_TOKEN environment variable is not set!');
+  console.warn('⚠️  Server will start but MCP tools will not work until token is configured.');
 }
 
-// Initialize GAP Client
-const gapClient = new GAPClient(GAP_API_TOKEN, GAP_API_BASE_URL);
+// Initialize GAP Client (will be null if no token)
+const gapClient = GAP_API_TOKEN ? new GAPClient(GAP_API_TOKEN, GAP_API_BASE_URL) : null;
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -35,7 +36,8 @@ app.get('/health', (req, res) => {
     status: 'healthy',
     service: 'gap-agriculture-mcp-server',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    gapApiConfigured: !!GAP_API_TOKEN
   });
 });
 
@@ -83,6 +85,16 @@ app.post('/mcp', async (req, res) => {
       async ({ latitude, longitude, days = 7 }) => {
         try {
           console.log(`[MCP Tool] get_weather_forecast called: lat=${latitude}, lon=${longitude}, days=${days}`);
+
+          if (!gapClient) {
+            return {
+              content: [{
+                type: 'text',
+                text: 'ERROR: GAP API token is not configured. Please set the GAP_API_TOKEN environment variable.'
+              }],
+              isError: true
+            };
+          }
 
           const data = await gapClient.getForecast(latitude, longitude, days);
 
@@ -142,6 +154,16 @@ app.post('/mcp', async (req, res) => {
       async ({ latitude, longitude, crop, forecast_days = 14 }) => {
         try {
           console.log(`[MCP Tool] get_farming_advisory called: lat=${latitude}, lon=${longitude}, crop=${crop}`);
+
+          if (!gapClient) {
+            return {
+              content: [{
+                type: 'text',
+                text: 'ERROR: GAP API token is not configured. Please set the GAP_API_TOKEN environment variable.'
+              }],
+              isError: true
+            };
+          }
 
           const data = await gapClient.getFarmingForecast(latitude, longitude, forecast_days);
 
@@ -270,6 +292,16 @@ app.post('/mcp', async (req, res) => {
       async ({ latitude, longitude, crop }) => {
         try {
           console.log(`[MCP Tool] get_planting_recommendation called: lat=${latitude}, lon=${longitude}, crop=${crop}`);
+
+          if (!gapClient) {
+            return {
+              content: [{
+                type: 'text',
+                text: 'ERROR: GAP API token is not configured. Please set the GAP_API_TOKEN environment variable.'
+              }],
+              isError: true
+            };
+          }
 
           // Get next 14 days forecast
           const data = await gapClient.getFarmingForecast(latitude, longitude, 14);
@@ -482,6 +514,16 @@ app.post('/mcp', async (req, res) => {
         try {
           console.log(`[MCP Tool] get_irrigation_advisory called: lat=${latitude}, lon=${longitude}, crop=${crop}`);
 
+          if (!gapClient) {
+            return {
+              content: [{
+                type: 'text',
+                text: 'ERROR: GAP API token is not configured. Please set the GAP_API_TOKEN environment variable.'
+              }],
+              isError: true
+            };
+          }
+
           const data = await gapClient.getForecast(latitude, longitude, 7);
 
           if (data.count === 0) {
@@ -615,8 +657,14 @@ app.post('/mcp', async (req, res) => {
 // Start server
 const HOST = '0.0.0.0'; // Listen on all network interfaces (required for Railway)
 app.listen(Number(PORT), HOST, () => {
-  console.log(`✅ GAP Agriculture MCP Server running on ${HOST}:${PORT}`);
+  console.log('');
+  console.log('🚀 =========================================');
+  console.log('   GAP Agriculture MCP Server');
+  console.log('=========================================');
+  console.log(`✅ Server running on ${HOST}:${PORT}`);
   console.log(`📍 Health check: http://localhost:${PORT}/health`);
   console.log(`🌾 MCP endpoint: http://localhost:${PORT}/mcp`);
-  console.log(`🔑 GAP API Token: ${GAP_API_TOKEN ? '✅ Configured' : '❌ Missing'}`);
+  console.log(`🔑 GAP API Token: ${GAP_API_TOKEN ? '✅ Configured' : '⚠️  NOT CONFIGURED - Add GAP_API_TOKEN environment variable'}`);
+  console.log('=========================================');
+  console.log('');
 });
