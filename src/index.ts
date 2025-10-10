@@ -102,7 +102,7 @@ app.post('/mcp', async (req, res) => {
             return {
               content: [{
                 type: 'text',
-                text: 'ERROR: Latitude and longitude are required. Please provide coordinates either as parameters or configure them in the MCP server headers (X-Farm-Latitude, X-Farm-Longitude).'
+                text: 'I need to know your farm location to provide weather information. Please let me know where your farm is located.'
               }],
               isError: true
             };
@@ -114,7 +114,7 @@ app.post('/mcp', async (req, res) => {
             return {
               content: [{
                 type: 'text',
-                text: 'ERROR: GAP API token is not configured. Please set the GAP_API_TOKEN environment variable.'
+                text: 'I\'m having trouble connecting to our weather data partner (TomorrowNow GAP Platform). Please try again in a moment, or contact support if the issue continues.'
               }],
               isError: true
             };
@@ -157,7 +157,7 @@ app.post('/mcp', async (req, res) => {
           return {
             content: [{
               type: 'text',
-              text: `Error fetching weather forecast: ${error.message}`
+              text: `I'm having trouble getting the latest weather information from our partner TomorrowNow GAP Platform right now. Please try again in a moment.`
             }],
             isError: true
           };
@@ -190,7 +190,7 @@ app.post('/mcp', async (req, res) => {
             return {
               content: [{
                 type: 'text',
-                text: 'ERROR: Latitude and longitude are required. Please provide coordinates either as parameters or configure them in the MCP server headers (X-Farm-Latitude, X-Farm-Longitude).'
+                text: 'I need to know your farm location to provide farming advice. Please let me know where your farm is located.'
               }],
               isError: true
             };
@@ -202,7 +202,7 @@ app.post('/mcp', async (req, res) => {
             return {
               content: [{
                 type: 'text',
-                text: 'ERROR: GAP API token is not configured. Please set the GAP_API_TOKEN environment variable.'
+                text: 'I\'m having trouble connecting to our weather data partner (TomorrowNow GAP Platform). Please try again in a moment, or contact support if the issue continues.'
               }],
               isError: true
             };
@@ -363,7 +363,7 @@ app.post('/mcp', async (req, res) => {
           return {
             content: [{
               type: 'text',
-              text: `Error generating farming advisory: ${error.message}`
+              text: `I'm having trouble getting the latest weather data from our partner TomorrowNow GAP Platform to provide farming advice. Please try again in a moment.`
             }],
             isError: true
           };
@@ -395,7 +395,7 @@ app.post('/mcp', async (req, res) => {
             return {
               content: [{
                 type: 'text',
-                text: 'ERROR: Latitude and longitude are required. Please provide coordinates either as parameters or configure them in the MCP server headers (X-Farm-Latitude, X-Farm-Longitude).'
+                text: 'I need to know your farm location to provide planting recommendations. Please let me know where your farm is located.'
               }],
               isError: true
             };
@@ -407,7 +407,7 @@ app.post('/mcp', async (req, res) => {
             return {
               content: [{
                 type: 'text',
-                text: 'ERROR: GAP API token is not configured. Please set the GAP_API_TOKEN environment variable.'
+                text: 'I\'m having trouble connecting to our weather data partner (TomorrowNow GAP Platform). Please try again in a moment, or contact support if the issue continues.'
               }],
               isError: true
             };
@@ -810,7 +810,7 @@ app.post('/mcp', async (req, res) => {
           return {
             content: [{
               type: 'text',
-              text: `Error generating planting recommendation: ${error.message}`
+              text: `I'm having trouble getting the latest weather data from our partner TomorrowNow GAP Platform to provide planting recommendations. Please try again in a moment.`
             }],
             isError: true
           };
@@ -842,7 +842,7 @@ app.post('/mcp', async (req, res) => {
             return {
               content: [{
                 type: 'text',
-                text: 'ERROR: Latitude and longitude are required. Please provide coordinates either as parameters or configure them in the MCP server headers (X-Farm-Latitude, X-Farm-Longitude).'
+                text: 'I need to know your farm location to provide irrigation advice. Please let me know where your farm is located.'
               }],
               isError: true
             };
@@ -854,7 +854,7 @@ app.post('/mcp', async (req, res) => {
             return {
               content: [{
                 type: 'text',
-                text: 'ERROR: GAP API token is not configured. Please set the GAP_API_TOKEN environment variable.'
+                text: 'I\'m having trouble connecting to our weather data partner (TomorrowNow GAP Platform). Please try again in a moment, or contact support if the issue continues.'
               }],
               isError: true
             };
@@ -964,7 +964,7 @@ app.post('/mcp', async (req, res) => {
           return {
             content: [{
               type: 'text',
-              text: `Error generating irrigation advisory: ${error.message}`
+              text: `I'm having trouble getting the latest weather data from our partner TomorrowNow GAP Platform. The irrigation advice is based on analyzing weather forecasts, so I need that data first. Please try again in a moment.`
             }],
             isError: true
           };
