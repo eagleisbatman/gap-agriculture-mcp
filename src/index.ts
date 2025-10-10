@@ -133,7 +133,8 @@ app.post('/mcp', async (req, res) => {
           }
 
           // Format the response
-          let response = `Weather Forecast for (${lat}, ${lon})\n`;
+          let response = `🌤️ Weather Forecast\n`;
+          response += `Based on data from TomorrowNow GAP Platform\n`;
           response += `Period: ${days} days\n\n`;
 
           data.results.forEach((day) => {
@@ -227,9 +228,10 @@ app.post('/mcp', async (req, res) => {
           const totalPrecip = results.reduce((sum, r) => sum + (Number(r.precipitation) || 0), 0);
           const avgHumidity = results.reduce((sum, r) => sum + (Number(r.relative_humidity) || 0), 0) / results.length;
 
-          let advisory = `🌾 Agricultural Advisory for (${lat}, ${lon})\n`;
+          let advisory = `🌾 Agricultural Advisory\n`;
           if (crop) advisory += `Crop: ${crop.toUpperCase()}\n`;
-          advisory += `Forecast Period: ${forecast_days} days\n\n`;
+          advisory += `Forecast Period: ${forecast_days} days\n`;
+          advisory += `Based on weather data from TomorrowNow GAP Platform\n\n`;
 
           advisory += `📊 Weather Summary:\n`;
           advisory += `  Average Max Temperature: ${avgMaxTemp.toFixed(1)}°C\n`;
@@ -434,7 +436,7 @@ app.post('/mcp', async (req, res) => {
           const avgHumidity = firstWeek.reduce((sum, r) => sum + (Number(r.relative_humidity) || 0), 0) / firstWeek.length;
 
           let recommendation = `🌱 Planting Recommendation for ${crop.toUpperCase()}\n`;
-          recommendation += `Location: (${lat}, ${lon})\n\n`;
+          recommendation += `Based on weather forecast from TomorrowNow GAP Platform\n\n`;
 
           recommendation += `Current Conditions (Next 7 days):\n`;
           recommendation += `  Temperature: ${avgTemp.toFixed(1)}°C\n`;
@@ -878,9 +880,8 @@ app.post('/mcp', async (req, res) => {
           const avgHumidity = results.reduce((sum, r) => sum + (Number(r.relative_humidity) || 0), 0) / results.length;
 
           let advisory = `💧 Irrigation Advisory\n`;
-          advisory += `Location: (${lat}, ${lon})\n`;
           if (crop) advisory += `Crop: ${crop.toUpperCase()}\n`;
-          advisory += `\n`;
+          advisory += `Based on weather forecast from TomorrowNow GAP Platform\n\n`;
 
           advisory += `7-Day Forecast Summary:\n`;
           advisory += `  Expected Rainfall: ${totalRainfall.toFixed(1)} mm\n`;
