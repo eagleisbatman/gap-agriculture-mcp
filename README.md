@@ -1,290 +1,451 @@
-# GAP Agriculture MCP Server
+# 🌾 GAP Agriculture MCP Server
 
-Model Context Protocol (MCP) server for agriculture weather intelligence powered by Tomorrow Now's Global Access Platform (GAP) API.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
+[![Railway Deploy](https://img.shields.io/badge/Deploy-Railway-blueviolet)](https://railway.app)
 
-## Features
+**Production-ready Model Context Protocol (MCP) server providing agriculture weather intelligence for farmers in Kenya and East Africa.**
 
-### Available MCP Tools
+Powered by [Tomorrow Now's Global Access Platform (GAP)](https://tomorrownow.org), this server delivers real-time weather forecasts, planting recommendations, irrigation schedules, and comprehensive farming advisory through AI agents via the MCP protocol.
 
-1. **`get_weather_forecast`**
-   - Get weather forecast for any location
-   - Supports 1-14 day forecasts
-   - Includes temperature, precipitation, humidity, wind speed
+---
 
-2. **`get_farming_advisory`**
-   - Comprehensive agricultural recommendations
-   - Analyzes weather patterns for farming decisions
-   - Crop-specific advice available
-   - Identifies risks and opportunities
+## 🚀 Live Demo
 
-3. **`get_planting_recommendation`**
-   - Determines if conditions are suitable for planting
-   - Crop-specific requirements analysis
-   - Provides actionable yes/no recommendations
+**Deployed Instance**: `https://gap-agriculture-mcp-production.up.railway.app`
 
-4. **`get_irrigation_advisory`**
-   - Irrigation scheduling recommendations
-   - Water deficit calculations
-   - Day-by-day irrigation guide
+- Health Check: [`/health`](https://gap-agriculture-mcp-production.up.railway.app/health)
+- MCP Endpoint: `/mcp` (POST requests only)
 
-## Quick Start
+---
+
+## ✨ Features
+
+###  4 Agricultural Intelligence Tools
+
+| Tool | Description | Use Case |
+|------|-------------|----------|
+| **`get_weather_forecast`** | 1-14 day weather forecasts | Daily planning, field work scheduling |
+| **`get_planting_recommendation`** | YES/NO planting decisions | Crop planting timing, risk assessment |
+| **`get_irrigation_advisory`** | Irrigation scheduling | Water management, irrigation planning |
+| **`get_farming_advisory`** | Comprehensive farming guidance | Crop management, risk mitigation |
+
+### Key Capabilities
+
+- ✅ **Ensemble Forecast Handling**: Processes 50-member ensemble forecasts into farmer-friendly single values
+- ✅ **7 Supported Crops**: Maize, Wheat, Rice, Beans, Vegetables, Tea, Coffee
+- ✅ **Anomaly Detection**: Identifies weather deviations from normal patterns
+- ✅ **Production Ready**: Deployed on Railway with health monitoring
+- ✅ **Type-Safe**: Built with TypeScript for reliability
+- ✅ **Well-Documented**: Comprehensive inline code comments
+
+---
+
+## 📋 Table of Contents
+
+- [Quick Start](#-quick-start)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Deployment](#-deployment)
+- [API Documentation](#-api-documentation)
+- [Integration Guides](#-integration-guides)
+- [Development](#-development)
+- [Architecture](#-architecture)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
+## 🏃 Quick Start
 
 ### Prerequisites
 
-- Node.js >= 18.0.0
-- GAP API token from Tomorrow Now
-- npm or yarn
+- **Node.js** >= 18.0.0
+- **GAP API Token** from [Tomorrow Now](https://tomorrownow.org)
+- **npm** or **yarn**
 
-### Installation
+### 5-Minute Setup
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/eagleisbatman/gap-agriculture-mcp.git
+cd gap-agriculture-mcp
+
+# 2. Install dependencies
+npm install
+
+# 3. Configure environment
+cp .env.example .env
+# Edit .env and add your GAP_API_TOKEN
+
+# 4. Start development server
+npm run dev
+
+# 5. Test the server
+curl http://localhost:3000/health
+```
+
+**Expected Output**:
+```json
+{
+  "status": "healthy",
+  "service": "gap-agriculture-mcp-server",
+  "timestamp": "2025-10-10T...",
+  "version": "1.0.0",
+  "gapApiConfigured": true
+}
+```
+
+---
+
+## 💾 Installation
+
+### Local Development
 
 ```bash
 # Install dependencies
 npm install
 
-# Create environment file
-cp .env.example .env
-
-# Edit .env and add your GAP API token
-# GAP_API_TOKEN=your_token_here
-```
-
-### Development
-
-```bash
-# Run in development mode with auto-reload
-npm run dev
-```
-
-### Production Build
-
-```bash
-# Build TypeScript to JavaScript
+# Build TypeScript
 npm run build
 
-# Start production server
+# Run in development mode (with hot reload)
+npm run dev
+
+# Run in production mode
 npm start
 ```
 
-### Testing
+### Docker (Optional)
 
 ```bash
-# Test the server
-curl http://localhost:3000/health
+# Build Docker image
+docker build -t gap-mcp-server .
 
-# Expected response:
-# {
-#   "status": "healthy",
-#   "service": "gap-agriculture-mcp-server",
-#   "timestamp": "2025-10-10T...",
-#   "version": "1.0.0"
-# }
+# Run container
+docker run -p 3000:3000 --env-file .env gap-mcp-server
 ```
 
-## Environment Variables
+---
 
-Create a `.env` file with the following:
+## ⚙️ Configuration
+
+### Environment Variables
+
+Create a `.env` file in the project root:
 
 ```bash
-# Required
+# Required: GAP API Configuration
 GAP_API_TOKEN=your_gap_api_token_here
-
-# Optional (with defaults)
 GAP_API_BASE_URL=https://gap.tomorrownow.org/api/v1
+
+# Server Configuration
 PORT=3000
 NODE_ENV=production
-ALLOWED_ORIGINS=*
-LOG_LEVEL=info
+
+# CORS Configuration
+ALLOWED_ORIGINS=*  # Use specific domains in production
 ```
 
-## API Endpoints
+### Get Your GAP API Token
+
+1. Visit [Tomorrow Now](https://tomorrownow.org)
+2. Sign up / Log in
+3. Navigate to API section
+4. Generate a new API token
+5. Copy token to `.env` file
+
+---
+
+## 🚂 Deployment
+
+### Deploy to Railway (Recommended)
+
+Railway provides free hosting with automatic deployments from GitHub.
+
+#### Step 1: Push to GitHub
+
+```bash
+git add .
+git commit -m "Initial commit"
+git push origin main
+```
+
+#### Step 2: Deploy on Railway
+
+1. Go to [railway.app](https://railway.app)
+2. Click **"New Project"**
+3. Select **"Deploy from GitHub repo"**
+4. Choose your repository
+5. Railway auto-detects Node.js project
+
+#### Step 3: Add Environment Variable
+
+In Railway dashboard:
+- Go to **Variables** tab
+- Add: `GAP_API_TOKEN` = `your_token_here`
+- Railway will auto-redeploy
+
+#### Step 4: Get Your URL
+
+Railway generates a public URL:
+```
+https://your-project-name.up.railway.app
+```
+
+Test it:
+```bash
+curl https://your-project-name.up.railway.app/health
+```
+
+### Other Deployment Options
+
+<details>
+<summary><b>Heroku</b></summary>
+
+```bash
+# Install Heroku CLI
+npm install -g heroku
+
+# Login and create app
+heroku login
+heroku create your-app-name
+
+# Set environment variables
+heroku config:set GAP_API_TOKEN=your_token_here
+
+# Deploy
+git push heroku main
+```
+</details>
+
+<details>
+<summary><b>AWS Lambda</b></summary>
+
+Use [Serverless Framework](https://www.serverless.com/):
+
+```bash
+npm install -g serverless
+serverless deploy
+```
+</details>
+
+<details>
+<summary><b>Google Cloud Run</b></summary>
+
+```bash
+gcloud run deploy gap-mcp-server \
+  --source . \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated
+```
+</details>
+
+---
+
+## 📚 API Documentation
 
 ### Health Check
-```
+
+```http
 GET /health
 ```
 
+**Response**:
+```json
+{
+  "status": "healthy",
+  "service": "gap-agriculture-mcp-server",
+  "timestamp": "2025-10-10T12:00:00.000Z",
+  "version": "1.0.0",
+  "gapApiConfigured": true
+}
+```
+
 ### MCP Endpoint
-```
+
+```http
 POST /mcp
+Content-Type: application/json
 ```
 
-This is the main endpoint for Model Context Protocol communication.
+This endpoint handles all Model Context Protocol communication. Connect via:
+- OpenAI Agent Builder
+- Anthropic Claude (with MCP support)
+- Custom MCP clients
 
-## Railway Deployment
+---
 
-### Method 1: Deploy from GitHub
+## 🔌 Integration Guides
 
-1. **Push code to GitHub**:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   gh repo create gap-agriculture-mcp --public
-   git remote add origin https://github.com/YOUR_USERNAME/gap-agriculture-mcp
-   git push -u origin main
-   ```
+### OpenAI Agent Builder
 
-2. **Deploy on Railway**:
-   - Go to [railway.app](https://railway.app)
-   - Click "New Project"
-   - Select "Deploy from GitHub repo"
-   - Choose your repository
-   - Railway will auto-detect settings from `railway.json`
+#### Step 1: Create New Agent
 
-3. **Add Environment Variables** in Railway dashboard:
-   ```
-   GAP_API_TOKEN=YOUR_GAP_API_TOKEN_HERE
-   NODE_ENV=production
-   ALLOWED_ORIGINS=https://your-app.vercel.app,https://your-domain.com
-   ```
+1. Go to [platform.openai.com](https://platform.openai.com/playground/agents)
+2. Click **"Create New Agent"**
+3. Add **"Agent"** node to canvas
 
-4. **Get your Railway URL**:
-   - Will be something like: `https://gap-agriculture-mcp.up.railway.app`
-   - Test it: `https://gap-agriculture-mcp.up.railway.app/health`
+#### Step 2: Configure Agent
 
-### Method 2: Railway CLI
+**System Instructions**:
+```
+You are an agricultural advisory assistant for farmers in Kenya and East Africa.
+
+When users ask about weather or farming:
+1. Ask for their farm coordinates (latitude, longitude) if not provided
+2. Use the appropriate tool to fetch weather data
+3. Provide clear, actionable advice in simple language
+
+Available crops: maize, wheat, rice, beans, vegetables, tea, coffee
+Example coordinates for testing: 1.2921, 36.8219 (Kenya)
+```
+
+#### Step 3: Add MCP Server
+
+1. In Agent configuration, click **"Add Tool"**
+2. Select **"Custom MCP Server"**
+3. Configure:
+   - **Name**: `gap-agriculture-mcp`
+   - **Transport**: `StreamableHTTP`
+   - **URL**: `https://your-railway-url.up.railway.app/mcp`
+
+#### Step 4: Test
+
+Try these prompts:
+```
+What's the weather forecast for latitude 1.2921, longitude 36.8219?
+Should I plant maize at coordinates 1.2921, 36.8219?
+Do I need to irrigate my farm at 1.2921, 36.8219?
+```
+
+---
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+gap-mcp-server/
+├── src/
+│   ├── index.ts          # Main MCP server + 4 tools
+│   └── gap-client.ts     # GAP API client with ensemble handling
+├── dist/                 # Compiled JavaScript (generated)
+├── .env                  # Local environment (gitignored)
+├── .env.example          # Environment template
+├── package.json          # Dependencies and scripts
+├── tsconfig.json         # TypeScript configuration
+├── railway.json          # Railway deployment config
+└── README.md             # This file
+```
+
+### Adding New MCP Tools
+
+1. **Register tool in `src/index.ts`**:
+
+```typescript
+server.tool(
+  'your_tool_name',
+  'Description of what your tool does',
+  {
+    // Define parameters with Zod schema
+    latitude: z.number().describe('Latitude coordinate'),
+    longitude: z.number().describe('Longitude coordinate')
+  },
+  async ({ latitude, longitude }) => {
+    // Implement your logic
+    const data = await gapClient.getForecast(latitude, longitude, 7);
+    
+    return {
+      content: [{
+        type: 'text',
+        text: `Your formatted response here`
+      }]
+    };
+  }
+);
+```
+
+2. **Test locally**: `npm run dev`
+3. **Deploy**: Push to GitHub (Railway auto-deploys)
+
+### Running Tests
 
 ```bash
-# Install Railway CLI
-npm install -g @railway/cli
+# Install test dependencies
+npm install --save-dev @types/jest jest ts-jest
 
-# Login
-railway login
-
-# Initialize
-railway init
-
-# Deploy
-railway up
+# Run tests
+npm test
 ```
 
-## OpenAI Agent Builder Configuration
+### Code Quality
 
-Once deployed to Railway, configure your OpenAI Agent:
+```bash
+# Lint code
+npm run lint
 
-1. Go to [platform.openai.com](https://platform.openai.com)
-2. Navigate to Agent Builder
-3. Create new workflow
-4. Add MCP server:
-   ```
-   MCP Server URL: https://your-railway-app.up.railway.app/mcp
-   Transport: StreamableHTTP
-   ```
-5. Configure system instructions:
-   ```
-   You are an agricultural assistant specialized in weather-based
-   farming advice. You help farmers make decisions about planting,
-   irrigation, and crop management using real-time weather data.
+# Format code
+npm run format
 
-   Always ask for the location (latitude/longitude) before making
-   recommendations. Be specific and actionable in your advice.
-   ```
-
-## Example Tool Usage
-
-### Weather Forecast
-
-**Input:**
-```json
-{
-  "latitude": -1.404244,
-  "longitude": 35.008688,
-  "days": 7
-}
+# Type check
+npm run type-check
 ```
 
-**Output:**
-```
-Weather Forecast for (-1.404244, 35.008688)
-Period: 7 days
+---
 
-Date: 2025-10-10
-  Max Temperature: 24.5°C
-  Min Temperature: 14.2°C
-  Precipitation: 5.3 mm
-  ...
-```
+## 🏗️ Architecture
 
-### Farming Advisory
-
-**Input:**
-```json
-{
-  "latitude": -1.404244,
-  "longitude": 35.008688,
-  "crop": "maize",
-  "forecast_days": 14
-}
-```
-
-**Output:**
-```
-🌾 Agricultural Advisory for (-1.404244, 35.008688)
-Crop: MAIZE
-Forecast Period: 14 days
-
-📊 Weather Summary:
-  Average Max Temperature: 25.3°C
-  Total Expected Rainfall: 45.2 mm
-  ...
-
-💡 Recommendations:
-  ✅ Temperature conditions are favorable for most crops
-  ⚠️ Low rainfall expected. Action needed:
-     - Plan for supplemental irrigation
-     ...
-```
-
-### Planting Recommendation
-
-**Input:**
-```json
-{
-  "latitude": -1.404244,
-  "longitude": 35.008688,
-  "crop": "maize"
-}
-```
-
-**Output:**
-```
-🌱 Planting Recommendation for MAIZE
-Location: (-1.404244, 35.008688)
-
-Current Conditions (Next 7 days):
-  Temperature: 24.5°C
-  Expected Rainfall: 32.1 mm
-  ...
-
-Assessment:
-  ✅ Temperature is suitable
-  ✅ Rainfall is adequate
-
-📋 RECOMMENDATION: ✅ YES - Conditions are favorable for planting maize
-```
-
-## Architecture
+### System Overview
 
 ```
 ┌─────────────────┐
-│   OpenAI Agent  │
-│     Builder     │
+│   AI Agent      │  (OpenAI Agent Builder, Claude, etc.)
+│   (User Query)  │
 └────────┬────────┘
-         │ MCP Protocol
+         │ MCP Protocol (StreamableHTTP)
          ▼
 ┌─────────────────┐
 │   Express.js    │
-│   MCP Server    │
+│   MCP Server    │  - Tool registration
+│   (This Repo)   │  - Request routing
+│                 │  - Response formatting
 └────────┬────────┘
          │ HTTP REST
          ▼
 ┌─────────────────┐
-│   GAP API       │
-│  (Tomorrow Now) │
+│   GAP API       │  - Ensemble forecasts (50 members)
+│  (Tomorrow Now) │  - Historical & forecast data
 └─────────────────┘
 ```
 
-## Supported Crops
+### Data Flow
+
+1. **User Request** → AI Agent receives farmer's question
+2. **Tool Selection** → Agent determines which MCP tool to use
+3. **MCP Call** → Agent sends request to MCP server (`/mcp` endpoint)
+4. **GAP API Request** → Server fetches weather data from GAP
+5. **Data Processing** → Ensemble forecasts averaged to single values
+6. **Response** → Formatted advice returned to AI agent → User
+
+### Key Technical Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| **TypeScript** | Type safety for production reliability |
+| **Express.js** | Simple, widely-supported web framework |
+| **StreamableHTTP** | MCP transport for web compatibility |
+| **Ensemble Aggregation** | Simplifies 50-value arrays to single farmer-friendly values |
+| **Railway Hosting** | Free tier, auto-deployment, easy scaling |
+| **Zod Validation** | Runtime type checking for MCP parameters |
+
+---
+
+## 📊 Supported Data
+
+### Crops
 
 - Maize
 - Wheat
@@ -294,91 +455,175 @@ Assessment:
 - Tea
 - Coffee
 
-## Supported Regions
+### Weather Attributes
 
-Optimized for:
-- Kenya
-- East Africa
-- Any region with GAP API coverage
+| Attribute | Unit | Description |
+|-----------|------|-------------|
+| `max_temperature` | °C | Daily maximum temperature |
+| `min_temperature` | °C | Daily minimum temperature |
+| `precipitation` | mm | Total rainfall |
+| `relative_humidity` | % | Relative humidity (0-100%) |
+| `wind_speed` | m/s | Wind speed |
+| `solar_radiation` | W/m² | Solar radiation (farming forecast only) |
+| `*_anom` | varies | Deviation from normal (anomaly) |
 
-## Troubleshooting
+### Geographic Coverage
 
-### Server won't start
+- **Primary**: Kenya, East Africa
+- **Supported**: Any region with GAP API coverage
+- **Test Coordinates**: 1.2921°N, 36.8219°E (Nairobi area)
 
-- Check if `GAP_API_TOKEN` is set in `.env`
-- Verify Node.js version >= 18
-- Check if port 3000 is available
+---
 
-### GAP API errors
+## 🐛 Troubleshooting
 
+### Server Won't Start
+
+**Problem**: `ERROR: GAP_API_TOKEN environment variable is not set`
+
+**Solution**:
+```bash
+# Check if .env file exists
+ls -la .env
+
+# Verify GAP_API_TOKEN is set
+grep GAP_API_TOKEN .env
+
+# If missing, copy from example
+cp .env.example .env
+# Then edit .env and add your token
+```
+
+### GAP API Errors
+
+**Problem**: `GAP API error: 401 Unauthorized`
+
+**Solution**:
 - Verify your API token is valid
-- Check if coordinates are within GAP coverage area
-- Ensure date ranges are valid
-- Check Railway logs for detailed error messages
+- Check token hasn't expired
+- Ensure token has correct permissions
 
-### MCP connection issues
+**Problem**: `GAP API error: 404 Not Found`
 
-- Verify Railway URL is accessible
-- Check CORS settings in environment variables
-- Ensure OpenAI Agent Builder has correct URL
-- Test health endpoint first
+**Solution**:
+- Check coordinates are within GAP coverage area
+- Verify date ranges are valid (forecast: 1-14 days future)
 
-## Development
+### MCP Connection Issues
 
-### Project Structure
+**Problem**: OpenAI Agent Builder can't connect to MCP server
+
+**Solution**:
+1. Test health endpoint: `curl https://your-url.up.railway.app/health`
+2. Check Railway logs for errors
+3. Verify CORS settings allow OpenAI domains
+4. Ensure URL uses `https://` not `http://`
+
+### Railway Deployment Fails
+
+**Problem**: Health check failing
+
+**Solution**:
+- Verify `GAP_API_TOKEN` is set in Railway variables
+- Check Railway build logs for compilation errors
+- Ensure `PORT` environment variable is not hardcoded
+- Server must bind to `0.0.0.0` not `localhost`
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+### How to Contribute
+
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** changes: `git commit -m 'Add amazing feature'`
+4. **Push** to branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request
+
+### Development Guidelines
+
+- Write clear commit messages
+- Add tests for new features
+- Update documentation
+- Follow existing code style
+- Add JSDoc comments for new functions
+
+### Code of Conduct
+
+- Be respectful and inclusive
+- Provide constructive feedback
+- Focus on what is best for the community
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ```
-gap-mcp-server/
-├── src/
-│   ├── index.ts          # Main server and MCP tools
-│   └── gap-client.ts     # GAP API client
-├── dist/                 # Compiled JavaScript (generated)
-├── package.json
-├── tsconfig.json
-├── railway.json          # Railway deployment config
-├── .env                  # Local environment (not in git)
-└── README.md
+MIT License
+
+Copyright (c) 2025 GAP Agriculture MCP Server Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction...
 ```
 
-### Adding New Tools
+---
 
-1. Register tool in `src/index.ts`:
-   ```typescript
-   server.registerTool(
-     'your_tool_name',
-     {
-       title: 'Your Tool Title',
-       description: 'What your tool does',
-       inputSchema: z.object({
-         // Define parameters
-       })
-     },
-     async (params) => {
-       // Implement logic
-       return {
-         content: [{
-           type: 'text',
-           text: 'Response'
-         }]
-       };
-     }
-   );
-   ```
+## 🙏 Acknowledgments
 
-2. Test locally with `npm run dev`
-3. Deploy to Railway
+- **Weather Data**: [Tomorrow Now GAP](https://tomorrownow.org) - Global Access Platform
+- **MCP Protocol**: [Anthropic](https://modelcontextprotocol.io) - Model Context Protocol specification
+- **Hosting**: [Railway](https://railway.app) - Simple, powerful deployment platform
+- **Community**: All contributors and users providing feedback
 
-## License
+---
 
-MIT
+## 📞 Support & Contact
 
-## Support
+### Getting Help
 
-For issues and questions:
-- GitHub Issues: [Your repo URL]
-- Email: [Your email]
+- **Issues**: [GitHub Issues](https://github.com/eagleisbatman/gap-agriculture-mcp/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/eagleisbatman/gap-agriculture-mcp/discussions)
+- **Documentation**: This README + inline code comments
 
-## Credits
+### Links
 
-- Weather Data: [Tomorrow Now GAP](https://tomorrownow.org)
-- MCP Protocol: [Anthropic](https://modelcontextprotocol.io)
+- **Live Demo**: https://gap-agriculture-mcp-production.up.railway.app
+- **Repository**: https://github.com/eagleisbatman/gap-agriculture-mcp
+- **GAP API Docs**: https://tomorrownow.org/docs
+- **MCP Specification**: https://modelcontextprotocol.io
+
+---
+
+## 🎯 Roadmap
+
+### Current Version (v1.0.0)
+- ✅ 4 agricultural MCP tools
+- ✅ Ensemble forecast handling
+- ✅ Railway deployment
+- ✅ OpenAI Agent Builder integration
+
+### Future Enhancements
+- [ ] Additional weather attributes (soil moisture, etc.)
+- [ ] Multi-location batch queries
+- [ ] Historical data comparison
+- [ ] Pest and disease predictions
+- [ ] Market price integration
+- [ ] SMS/WhatsApp notifications
+- [ ] Multi-language support (Swahili, etc.)
+
+---
+
+<div align="center">
+
+**Built with ❤️ for farmers in Kenya and East Africa**
+
+[⭐ Star this repo](https://github.com/eagleisbatman/gap-agriculture-mcp) if you find it useful!
+
+</div>
