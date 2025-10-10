@@ -78,15 +78,15 @@ app.post('/mcp', async (req, res) => {
     });
 
     const server = new McpServer({
-      name: 'gap-agriculture-mcp',
+      name: 'GAP Agriculture Intelligence',
       version: '1.0.0',
-      description: 'Agriculture weather intelligence for farmers using GAP API'
+      description: 'Real-time weather forecasts and farming advisory for Kenya using TomorrowNow Global Access Platform (GAP)'
     });
 
     // Tool 1: Get Weather Forecast
     server.tool(
       'get_weather_forecast',
-      'Get weather forecast for a specific location. Provide latitude and longitude coordinates, or they will be read from request headers if configured.',
+      'Get accurate weather forecast (temperature, rainfall, humidity, wind) for Kenya farms. Powered by TomorrowNow GAP satellite data.',
       {
         latitude: z.number().min(-90).max(90).optional().describe('Latitude coordinate (e.g., -1.404244 for Kenya). Optional if provided in headers.'),
         longitude: z.number().min(-180).max(180).optional().describe('Longitude coordinate (e.g., 35.008688 for Kenya). Optional if provided in headers.'),
@@ -168,7 +168,7 @@ app.post('/mcp', async (req, res) => {
     // Tool 2: Get Farming Advisory
     server.tool(
       'get_farming_advisory',
-      'Get agricultural advisory based on weather forecast. Includes planting recommendations and risk alerts.',
+      'Get comprehensive farming advice for Kenya based on 14-day weather forecast. Includes crop recommendations, risk alerts, and best farming days.',
       {
         latitude: z.number().min(-90).max(90).optional().describe('Latitude coordinate. Optional if provided in headers.'),
         longitude: z.number().min(-180).max(180).optional().describe('Longitude coordinate. Optional if provided in headers.'),
@@ -374,7 +374,7 @@ app.post('/mcp', async (req, res) => {
     // Tool 3: Get Planting Recommendation
     server.tool(
       'get_planting_recommendation',
-      'Get recommendation on whether current conditions are good for planting specific crops',
+      'Get YES/NO planting decision for 22 East African crops based on current weather conditions in Kenya. Includes detailed reasoning and crop requirements.',
       {
         latitude: z.number().min(-90).max(90).optional().describe('Latitude coordinate. Optional if provided in headers.'),
         longitude: z.number().min(-180).max(180).optional().describe('Longitude coordinate. Optional if provided in headers.'),
@@ -821,7 +821,7 @@ app.post('/mcp', async (req, res) => {
     // Tool 4: Get Irrigation Advisory
     server.tool(
       'get_irrigation_advisory',
-      'Get recommendations for irrigation scheduling based on weather forecast',
+      'Get 7-day irrigation schedule for Kenya farms. Provides day-by-day water management recommendations based on rainfall and temperature forecasts.',
       {
         latitude: z.number().min(-90).max(90).optional().describe('Latitude coordinate. Optional if provided in headers.'),
         longitude: z.number().min(-180).max(180).optional().describe('Longitude coordinate. Optional if provided in headers.'),
