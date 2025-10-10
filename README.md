@@ -310,9 +310,35 @@ Example coordinates for testing: 1.2921, 36.8219 (Kenya)
 3. Configure:
    - **Name**: `gap-agriculture-mcp`
    - **Transport**: `StreamableHTTP`
-   - **URL**: `https://your-railway-url.up.railway.app/mcp`
+   - **URL**: `https://gap-agriculture-mcp-production.up.railway.app/mcp`
 
-#### Step 4: Test
+#### Step 4 (Optional): Configure Default Farm Coordinates
+
+For testing convenience, you can configure default farm coordinates using custom headers. This allows testers to use the tools without typing coordinates every time.
+
+1. In the MCP Server configuration, select **"Authentication"** dropdown
+2. Choose **"Custom headers"**
+3. Add the following headers:
+   ```
+   X-Farm-Latitude: 1.2921
+   X-Farm-Longitude: 36.8219
+   ```
+
+**How it works:**
+- Tools will use these header coordinates as defaults if coordinates aren't provided in the query
+- Users can still override by providing explicit coordinates in their questions
+- Perfect for testing with a consistent location
+
+**Example queries with header coordinates:**
+```
+What's the weather forecast?  (uses header coordinates)
+Should I plant maize?  (uses header coordinates)
+Do I need to irrigate?  (uses header coordinates)
+```
+
+**Production Note:** In your actual app integration, your application will capture the user's location dynamically and pass it to the MCP tools as parameters. The custom header approach is specifically for testing purposes.
+
+#### Step 5: Test
 
 Try these prompts:
 ```
