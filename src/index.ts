@@ -172,7 +172,12 @@ app.post('/mcp', async (req, res) => {
       {
         latitude: z.number().min(-90).max(90).optional().describe('Latitude coordinate. Optional if provided in headers.'),
         longitude: z.number().min(-180).max(180).optional().describe('Longitude coordinate. Optional if provided in headers.'),
-        crop: z.enum(['maize', 'wheat', 'rice', 'beans', 'vegetables', 'tea', 'coffee']).optional().describe('Type of crop being grown'),
+        crop: z.enum([
+          'maize', 'wheat', 'rice', 'beans', 'vegetables', 'tea', 'coffee',
+          'sorghum', 'millet', 'cassava', 'sweet_potato', 'potato',
+          'tomato', 'cabbage', 'kale', 'onion', 'banana', 'sugarcane',
+          'cowpea', 'pigeon_pea', 'groundnut', 'sunflower', 'cotton'
+        ]).optional().describe('Type of crop being grown (East African crops)'),
         forecast_days: z.number().min(7).max(14).default(14).optional().describe('Days to look ahead')
       },
       async ({ latitude, longitude, crop, forecast_days = 14 }) => {
@@ -266,7 +271,7 @@ app.post('/mcp', async (req, res) => {
 
           // Crop-specific advice
           if (crop) {
-            advisory += `\n🌱 Specific advice for ${crop}:\n`;
+            advisory += `\n🌱 Specific advice for ${crop.replace('_', ' ')}:\n`;
             switch (crop) {
               case 'maize':
                 advisory += `  - Optimal temp range: 18-27°C\n`;
@@ -282,12 +287,60 @@ app.post('/mcp', async (req, res) => {
                   advisory += `  ✅ Good conditions for wheat\n`;
                 }
                 break;
+              case 'sorghum':
+              case 'millet':
+                advisory += `  - Heat-tolerant, ideal for drier conditions\n`;
+                advisory += `  - Optimal temp range: 25-35°C\n`;
+                if (avgMaxTemp >= 25 && totalPrecip < 50) {
+                  advisory += `  ✅ Good conditions for ${crop}\n`;
+                }
+                break;
+              case 'cassava':
+                advisory += `  - Drought-tolerant once established\n`;
+                advisory += `  - Needs moisture in first 3 months\n`;
+                advisory += `  - Optimal temp: 25-29°C\n`;
+                break;
+              case 'sweet_potato':
+              case 'potato':
+                advisory += `  - Prefers cool to moderate temperatures\n`;
+                advisory += `  - Monitor soil moisture carefully\n`;
+                advisory += `  - Optimal temp: 18-24°C\n`;
+                break;
+              case 'tomato':
+              case 'cabbage':
+              case 'kale':
+              case 'onion':
+                advisory += `  - Regular moisture critical\n`;
+                advisory += `  - Watch for fungal diseases in high humidity\n`;
+                advisory += `  - Optimal temp: 18-25°C\n`;
+                break;
+              case 'banana':
+                advisory += `  - High water needs year-round\n`;
+                advisory += `  - Protect from strong winds\n`;
+                advisory += `  - Optimal temp: 26-30°C\n`;
+                break;
+              case 'tea':
+              case 'coffee':
+                advisory += `  - Needs well-distributed rainfall\n`;
+                advisory += `  - High humidity beneficial\n`;
+                advisory += `  - Optimal temp: 18-25°C\n`;
+                break;
+              case 'cowpea':
+              case 'pigeon_pea':
+              case 'groundnut':
+                advisory += `  - Nitrogen-fixing legume\n`;
+                advisory += `  - Moderate water needs\n`;
+                advisory += `  - Optimal temp: 25-30°C\n`;
+                break;
               case 'vegetables':
                 advisory += `  - Most vegetables prefer 18-30°C\n`;
                 advisory += `  - Consistent moisture needed\n`;
                 if (totalPrecip >= 20 && totalPrecip <= 60) {
                   advisory += `  ✅ Good conditions for vegetable cultivation\n`;
                 }
+                break;
+              default:
+                advisory += `  - Consult local extension for specific advice\n`;
                 break;
             }
           }
@@ -325,7 +378,12 @@ app.post('/mcp', async (req, res) => {
       {
         latitude: z.number().min(-90).max(90).optional().describe('Latitude coordinate. Optional if provided in headers.'),
         longitude: z.number().min(-180).max(180).optional().describe('Longitude coordinate. Optional if provided in headers.'),
-        crop: z.enum(['maize', 'wheat', 'rice', 'beans', 'vegetables', 'tea', 'coffee']).describe('Crop to plant')
+        crop: z.enum([
+          'maize', 'wheat', 'rice', 'beans', 'vegetables', 'tea', 'coffee',
+          'sorghum', 'millet', 'cassava', 'sweet_potato', 'potato',
+          'tomato', 'cabbage', 'kale', 'onion', 'banana', 'sugarcane',
+          'cowpea', 'pigeon_pea', 'groundnut', 'sunflower', 'cotton'
+        ]).describe('Crop to plant (East African crops)')
       },
       async ({ latitude, longitude, crop }) => {
         try {
@@ -511,6 +569,213 @@ app.post('/mcp', async (req, res) => {
                 reasons.push('✅ Good humidity levels');
               }
               break;
+
+            case 'sorghum':
+            case 'millet':
+              recommendation += `${crop.toUpperCase()} Requirements:\n`;
+              recommendation += `  - Optimal temperature: 25-35°C\n`;
+              recommendation += `  - Drought-tolerant crop\n`;
+              recommendation += `  - Low water requirements\n\n`;
+
+              if (avgTemp >= 22 && avgTemp <= 35) {
+                reasons.push('✅ Temperature is suitable');
+                shouldPlant = true;
+              } else {
+                reasons.push('❌ Temperature not optimal for ' + crop);
+                shouldPlant = false;
+              }
+
+              if (totalRainfall >= 15) {
+                reasons.push('✅ Sufficient moisture for germination');
+              } else {
+                reasons.push('⚠️ Consider irrigation for establishment');
+              }
+              break;
+
+            case 'cassava':
+              recommendation += `Cassava Requirements:\n`;
+              recommendation += `  - Optimal temperature: 25-29°C\n`;
+              recommendation += `  - Drought-tolerant once established\n`;
+              recommendation += `  - Needs moisture for first 3 months\n\n`;
+
+              if (avgTemp >= 20 && avgTemp <= 32) {
+                reasons.push('✅ Temperature is suitable');
+                shouldPlant = true;
+              } else {
+                reasons.push('❌ Temperature not ideal');
+                shouldPlant = false;
+              }
+
+              if (totalRainfall >= 40) {
+                reasons.push('✅ Good rainfall for establishment');
+              } else {
+                reasons.push('⚠️ Ensure irrigation during establishment phase');
+              }
+              break;
+
+            case 'sweet_potato':
+            case 'potato':
+              recommendation += `${crop.toUpperCase().replace('_', ' ')} Requirements:\n`;
+              recommendation += `  - Optimal temperature: 18-24°C\n`;
+              recommendation += `  - Moderate water needs\n`;
+              recommendation += `  - Well-drained soil essential\n\n`;
+
+              if (avgTemp >= 15 && avgTemp <= 27) {
+                reasons.push('✅ Temperature is suitable');
+                shouldPlant = true;
+              } else {
+                reasons.push('❌ Temperature not optimal');
+                shouldPlant = false;
+              }
+
+              if (totalRainfall >= 30 && totalRainfall <= 80) {
+                reasons.push('✅ Rainfall is appropriate');
+              } else if (totalRainfall > 80) {
+                reasons.push('⚠️ High rainfall - ensure good drainage');
+              }
+              break;
+
+            case 'tomato':
+            case 'cabbage':
+            case 'kale':
+            case 'onion':
+              recommendation += `${crop.toUpperCase()} Requirements:\n`;
+              recommendation += `  - Optimal temperature: 18-25°C\n`;
+              recommendation += `  - Regular moisture needed\n`;
+              recommendation += `  - Avoid waterlogging\n\n`;
+
+              if (avgTemp >= 15 && avgTemp <= 28) {
+                reasons.push('✅ Temperature suitable for vegetables');
+                shouldPlant = true;
+              } else {
+                reasons.push('❌ Temperature may be challenging');
+                shouldPlant = false;
+              }
+
+              if (totalRainfall >= 20 && totalRainfall <= 60) {
+                reasons.push('✅ Good moisture levels');
+              } else if (totalRainfall < 20) {
+                reasons.push('⚠️ Plan for irrigation');
+              }
+              break;
+
+            case 'banana':
+              recommendation += `Banana Requirements:\n`;
+              recommendation += `  - Optimal temperature: 26-30°C\n`;
+              recommendation += `  - High water needs\n`;
+              recommendation += `  - Continuous moisture preferred\n\n`;
+
+              if (avgTemp >= 22 && avgTemp <= 32) {
+                reasons.push('✅ Temperature is suitable');
+                shouldPlant = true;
+              } else {
+                reasons.push('❌ Temperature not ideal');
+                shouldPlant = false;
+              }
+
+              if (totalRainfall >= 50) {
+                reasons.push('✅ Good rainfall for bananas');
+              } else {
+                reasons.push('⚠️ Plan for regular irrigation');
+              }
+              break;
+
+            case 'sugarcane':
+              recommendation += `Sugarcane Requirements:\n`;
+              recommendation += `  - Optimal temperature: 20-30°C\n`;
+              recommendation += `  - High water needs\n`;
+              recommendation += `  - Long growing season (12-18 months)\n\n`;
+
+              if (avgTemp >= 20 && avgTemp <= 32) {
+                reasons.push('✅ Temperature is suitable');
+                shouldPlant = true;
+              } else {
+                reasons.push('❌ Temperature not optimal');
+                shouldPlant = false;
+              }
+
+              if (totalRainfall >= 40) {
+                reasons.push('✅ Good rainfall for establishment');
+              } else {
+                reasons.push('⚠️ Ensure adequate irrigation');
+              }
+              break;
+
+            case 'cowpea':
+            case 'pigeon_pea':
+            case 'groundnut':
+              recommendation += `${crop.toUpperCase().replace('_', ' ')} Requirements:\n`;
+              recommendation += `  - Optimal temperature: 25-30°C\n`;
+              recommendation += `  - Moderate water needs\n`;
+              recommendation += `  - Drought-tolerant legume\n\n`;
+
+              if (avgTemp >= 20 && avgTemp <= 32) {
+                reasons.push('✅ Temperature is suitable');
+                shouldPlant = true;
+              } else {
+                reasons.push('❌ Temperature not ideal');
+                shouldPlant = false;
+              }
+
+              if (totalRainfall >= 25 && totalRainfall <= 70) {
+                reasons.push('✅ Appropriate rainfall');
+              } else if (totalRainfall > 70) {
+                reasons.push('⚠️ High rainfall - monitor for waterlogging');
+              }
+              break;
+
+            case 'sunflower':
+              recommendation += `Sunflower Requirements:\n`;
+              recommendation += `  - Optimal temperature: 20-25°C\n`;
+              recommendation += `  - Moderate water needs\n`;
+              recommendation += `  - Tolerates some drought\n\n`;
+
+              if (avgTemp >= 18 && avgTemp <= 28) {
+                reasons.push('✅ Temperature is suitable');
+                shouldPlant = true;
+              } else {
+                reasons.push('❌ Temperature not optimal');
+                shouldPlant = false;
+              }
+
+              if (totalRainfall >= 20 && totalRainfall <= 60) {
+                reasons.push('✅ Good rainfall conditions');
+              }
+              break;
+
+            case 'cotton':
+              recommendation += `Cotton Requirements:\n`;
+              recommendation += `  - Optimal temperature: 21-27°C\n`;
+              recommendation += `  - Moderate water during growth\n`;
+              recommendation += `  - Dry conditions for harvest\n\n`;
+
+              if (avgTemp >= 20 && avgTemp <= 30) {
+                reasons.push('✅ Temperature is suitable');
+                shouldPlant = true;
+              } else {
+                reasons.push('❌ Temperature not optimal');
+                shouldPlant = false;
+              }
+
+              if (totalRainfall >= 25 && totalRainfall <= 70) {
+                reasons.push('✅ Appropriate rainfall');
+              }
+              break;
+
+            default:
+              recommendation += `General Agricultural Assessment:\n`;
+              recommendation += `  - Weather conditions analysis only\n`;
+              recommendation += `  - Consult local agricultural extension for specific crop advice\n\n`;
+
+              if (avgTemp >= 18 && avgTemp <= 30) {
+                reasons.push('✅ Temperature is in general suitable range');
+                shouldPlant = true;
+              }
+
+              if (totalRainfall >= 20) {
+                reasons.push('✅ Some rainfall expected');
+              }
+              break;
           }
 
           recommendation += `Assessment:\n`;
@@ -560,7 +825,12 @@ app.post('/mcp', async (req, res) => {
       {
         latitude: z.number().min(-90).max(90).optional().describe('Latitude coordinate. Optional if provided in headers.'),
         longitude: z.number().min(-180).max(180).optional().describe('Longitude coordinate. Optional if provided in headers.'),
-        crop: z.enum(['maize', 'wheat', 'rice', 'beans', 'vegetables', 'tea', 'coffee']).optional().describe('Type of crop')
+        crop: z.enum([
+          'maize', 'wheat', 'rice', 'beans', 'vegetables', 'tea', 'coffee',
+          'sorghum', 'millet', 'cassava', 'sweet_potato', 'potato',
+          'tomato', 'cabbage', 'kale', 'onion', 'banana', 'sugarcane',
+          'cowpea', 'pigeon_pea', 'groundnut', 'sunflower', 'cotton'
+        ]).optional().describe('Type of crop (East African crops)')
       },
       async ({ latitude, longitude, crop }) => {
         try {
