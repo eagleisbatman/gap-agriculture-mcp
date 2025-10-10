@@ -613,8 +613,9 @@ app.post('/mcp', async (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`✅ GAP Agriculture MCP Server running on port ${PORT}`);
+const HOST = '0.0.0.0'; // Listen on all network interfaces (required for Railway)
+app.listen(Number(PORT), HOST, () => {
+  console.log(`✅ GAP Agriculture MCP Server running on ${HOST}:${PORT}`);
   console.log(`📍 Health check: http://localhost:${PORT}/health`);
   console.log(`🌾 MCP endpoint: http://localhost:${PORT}/mcp`);
   console.log(`🔑 GAP API Token: ${GAP_API_TOKEN ? '✅ Configured' : '❌ Missing'}`);
