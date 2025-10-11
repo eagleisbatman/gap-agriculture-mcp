@@ -27,7 +27,7 @@ Transforms weather data from [TomorrowNow's Global Access Platform (GAP)](https:
 **Vegetables:** tomato, cabbage, kale, onion, vegetables
 **Cash Crops:** tea, coffee, sugarcane, banana, sunflower, cotton
 
-*Note: Crop list optimized for East Africa. Easy to add region-specific crops.*
+*Note: Crop list currently optimized for East Africa. You can customize the crop list for your region in `src/index.ts`, but remember that weather data availability depends on GAP coverage in your area.*
 
 ### Technical Features
 
@@ -37,12 +37,25 @@ Transforms weather data from [TomorrowNow's Global Access Platform (GAP)](https:
 - ✅ TypeScript for production reliability
 - ✅ StreamableHTTP MCP transport
 
+## 🌍 Geographic Coverage
+
+**IMPORTANT:** This MCP server relies on [TomorrowNow's Global Access Platform (GAP)](https://tomorrownow.org) for weather data. GAP coverage is **limited to specific regions** where TomorrowNow operates.
+
+**Check GAP availability for your region before deployment.**
+
+Current GAP coverage includes parts of:
+- East Africa (Kenya, Tanzania, Uganda, Ethiopia, Somalia)
+- Other regions may be available - verify at [tomorrownow.org](https://tomorrownow.org)
+
+**Note:** The 22 supported crops can be customized for any region, but the server will only work where GAP provides weather data coverage.
+
 ## 🏃 Quick Start
 
 ### Prerequisites
 
 - Node.js >= 18.0.0
 - GAP API Token from [Tomorrow Now](https://tomorrownow.org)
+- **Verify GAP covers your target region**
 
 ### Local Setup
 
@@ -235,7 +248,9 @@ cp .env.example .env
 ### GAP API Errors
 
 **401 Unauthorized:** Invalid or expired API token
-**404 Not Found:** Coordinates outside GAP coverage or invalid dates
+**404 Not Found:** Coordinates outside GAP coverage area or invalid dates
+
+**Important:** If you consistently get 404 errors with valid coordinates, your region may not be covered by TomorrowNow GAP Platform. Verify coverage at [tomorrownow.org](https://tomorrownow.org)
 
 ### MCP Connection Failed
 
