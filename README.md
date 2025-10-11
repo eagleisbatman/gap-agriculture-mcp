@@ -158,18 +158,90 @@ See the [FarmerChat Widget repository](https://github.com/eagleisbatman/gap-chat
 - Lists all supported crops
 - Provides user-friendly error messages
 
-**5. Test with your location coordinates:**
+**5. Test the agent:**
+
+The MCP server accepts coordinates in two ways:
+
+**Option A - Default coordinates (Recommended for production):**
+Configure default coordinates via HTTP headers when creating ChatKit sessions. Users can then ask simple questions:
 ```
-What's the weather forecast for latitude XX.XXXX, longitude YY.YYYY?
-Should I plant [crop] at latitude XX.XXXX, longitude YY.YYYY?
+What's the weather?
+Should I plant maize?
+Do I need to irrigate?
 ```
+
+**Option B - Explicit coordinates (For testing or multi-location support):**
+Users can specify different locations:
+```
+What's the weather for latitude XX.XXXX, longitude YY.YYYY?
+Should I plant maize at latitude XX.XXXX, longitude YY.YYYY?
+```
+
+See the [FarmerChat Widget](https://github.com/eagleisbatman/gap-chat-widget) for a complete example of how to configure default coordinates via session headers.
+
+## 🔧 Configuring Default Coordinates
+
+The MCP server accepts default coordinates via HTTP headers, allowing farmers to ask questions without specifying location every time.
+
+### How It Works
+
+When your AI agent calls the MCP server, include these custom headers:
+
+```http
+X-Farm-Latitude: XX.XXXX
+X-Farm-Longitude: YY.YYYY
+```
+
+The server uses these as defaults when users don't provide coordinates in their query.
+
+### Example: OpenAI ChatKit Integration
+
+```javascript
+// In your session creation endpoint
+const response = await fetch('https://api.openai.com/v1/chatkit/sessions', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${OPENAI_API_KEY}`,
+    'Content-Type': 'application/json',
+    'X-Farm-Latitude': '-1.2864',      // Your region's default latitude
+    'X-Farm-Longitude': '36.8172'      // Your region's default longitude
+  },
+  body: JSON.stringify({
+    workflow_id: WORKFLOW_ID
+  })
+});
+```
+
+### Example: Direct MCP Call
+
+```bash
+curl -X POST https://your-mcp-server.com/mcp \
+  -H "Content-Type: application/json" \
+  -H "X-Farm-Latitude: XX.XXXX" \
+  -H "X-Farm-Longitude: YY.YYYY" \
+  -d '{"tool": "get_weather_forecast", "args": {}}'
+```
+
+### User Experience
+
+**With default coordinates configured:**
+- User: "What's the weather?"
+- Agent: *Uses default coordinates, provides weather*
+
+**Without default coordinates:**
+- User: "What's the weather?"
+- Agent: "I need to know your farm location to provide weather information. Please let me know where your farm is located."
+
+**For a complete implementation example**, see the [FarmerChat Widget repository](https://github.com/eagleisbatman/gap-chat-widget).
 
 ## 🏗️ Architecture
 
 ```
 AI Agent (OpenAI/Claude/Custom)
-    ↓ MCP Protocol (StreamableHTTP)
+    ↓ MCP Protocol (StreamableHTTP) + Custom Headers
 Express.js MCP Server (This Repo)
+    ↓ Reads X-Farm-Latitude, X-Farm-Longitude from headers
+    ↓ Uses as defaults if user doesn't provide coordinates
     ↓ HTTP REST
 GAP API (TomorrowNow)
     - Provides: Weather data only
