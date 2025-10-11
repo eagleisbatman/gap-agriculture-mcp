@@ -4,7 +4,7 @@
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 
-**Model Context Protocol (MCP) server providing agriculture weather intelligence for Kenya and East Africa.**
+**Model Context Protocol (MCP) server providing agriculture weather intelligence.**
 
 Transforms weather data from [TomorrowNow's Global Access Platform (GAP)](https://tomorrownow.org) into actionable agricultural advice: weather forecasts, planting decisions, irrigation schedules, and farming guidance.
 
@@ -15,7 +15,7 @@ Transforms weather data from [TomorrowNow's Global Access Platform (GAP)](https:
 | Tool | Purpose |
 |------|---------|
 | `get_weather_forecast` | 1-14 day forecasts (temperature, rain, humidity, wind) |
-| `get_planting_recommendation` | YES/NO planting decisions for 22 East African crops |
+| `get_planting_recommendation` | YES/NO planting decisions for specific crops |
 | `get_irrigation_advisory` | 7-day irrigation schedules with water balance calculations |
 | `get_farming_advisory` | Comprehensive crop management and risk alerts |
 
@@ -27,11 +27,13 @@ Transforms weather data from [TomorrowNow's Global Access Platform (GAP)](https:
 **Vegetables:** tomato, cabbage, kale, onion, vegetables
 **Cash Crops:** tea, coffee, sugarcane, banana, sunflower, cotton
 
+*Note: Crop list optimized for East Africa. Easy to add region-specific crops.*
+
 ### Technical Features
 
-- ✅ Processes 50-member ensemble forecasts into single farmer-friendly values
-- ✅ Hardcoded crop-specific logic (temperature ranges, water requirements)
-- ✅ Farmer-friendly responses (no coordinates, no technical jargon)
+- ✅ Processes 50-member ensemble forecasts into single values
+- ✅ Crop-specific logic (temperature ranges, water requirements)
+- ✅ Farmer-friendly responses (no technical jargon)
 - ✅ TypeScript for production reliability
 - ✅ StreamableHTTP MCP transport
 
@@ -92,71 +94,67 @@ ALLOWED_ORIGINS=*
 3. Generate API token
 4. Add to `.env`
 
-## 🚂 Deploy to Railway
+## 🚀 Deployment
 
-Railway provides free hosting with auto-deployment from GitHub.
+This server can be deployed to any Node.js hosting platform:
 
-### Steps
+- **PaaS:** Railway, Heroku, Render, Fly.io
+- **Cloud:** AWS (EC2/Lambda), Google Cloud Run, Azure App Service
+- **Containerized:** Docker, Kubernetes
+- **VPS:** DigitalOcean, Linode, your own server
 
-```bash
-# 1. Push to GitHub
-git add .
-git commit -m "Initial commit"
-git push origin main
+### Generic Deployment Steps
 
-# 2. Deploy on Railway
-# - Go to railway.app
-# - New Project → Deploy from GitHub
-# - Select your repository
-# - Railway auto-detects configuration
+1. **Push code to version control** (GitHub, GitLab, etc.)
+2. **Choose hosting platform** based on your needs
+3. **Configure environment variables:**
+   - Set `GAP_API_TOKEN`
+   - Optionally set `PORT`, `NODE_ENV`, `ALLOWED_ORIGINS`
+4. **Deploy** using platform-specific method
+5. **Test:** `curl https://your-deployment-url/health`
 
-# 3. Add environment variable
-# In Railway dashboard → Variables:
-#   GAP_API_TOKEN = your_token_here
+### Platform-Specific Notes
 
-# 4. Get your URL
-# Railway generates: https://your-app.up.railway.app
-```
-
-### Test Deployment
-
-```bash
-curl https://your-app.up.railway.app/health
-```
+**Railway/Heroku/Render:** Auto-detect Node.js, use `npm start`
+**AWS Lambda:** May need serverless framework adapter
+**Docker:** Use provided `Dockerfile` (if available) or create one
+**VPS:** Use PM2 or systemd for process management
 
 ## 🔌 Integration
 
 ### OpenAI Agent Builder
 
-**1. Create Agent Workflow:**
+**1. Deploy MCP Server** (any platform)
+
+**2. Create Agent Workflow:**
 - Go to [platform.openai.com](https://platform.openai.com/playground/agents)
 - Create new agent
 
-**2. Add MCP Server:**
+**3. Add MCP Server:**
 - Add Tool → Custom MCP Server
 - **Name:** `gap-agriculture-mcp`
 - **Transport:** `StreamableHTTP`
-- **URL:** `https://your-app.up.railway.app/mcp`
+- **URL:** `https://your-deployment-url/mcp`
 
-**3. Configure System Prompt:**
+**4. Configure System Prompt:**
 
 See the [FarmerChat Widget repository](https://github.com/eagleisbatman/gap-chat-widget) for a complete example system prompt (`SYSTEM_PROMPT.md`) that:
 - Instructs the LLM to use MCP tools exclusively for weather data
-- Hides technical details from farmers
+- Hides technical details from end users
 - Keeps responses concise and actionable
 - Lists all supported crops
-- Provides farmer-friendly error messages
+- Provides user-friendly error messages
 
-**4. Test:**
+**5. Test with your location coordinates:**
 ```
-What's the weather forecast for latitude -1.2864, longitude 36.8172?
-Should I plant maize at -1.2864, 36.8172?
+What's the weather forecast for latitude XX.XXXX, longitude YY.YYYY?
+Should I plant [crop] at latitude XX.XXXX, longitude YY.YYYY?
 ```
 
 ## 🏗️ Architecture
 
 ```
-AI Agent (OpenAI/Claude)
+AI Agent (OpenAI/Claude/Custom)
     ↓ MCP Protocol (StreamableHTTP)
 Express.js MCP Server (This Repo)
     ↓ HTTP REST
@@ -184,7 +182,6 @@ gap-mcp-server/
 ├── .env.example          # Environment template
 ├── package.json          # Dependencies and scripts
 ├── tsconfig.json         # TypeScript config
-├── railway.json          # Railway deployment config
 ├── CLAUDE.md             # Development guidance
 └── README.md             # This file
 ```
@@ -208,7 +205,14 @@ npm start       # Production mode
    - `get_farming_advisory` (~line 275)
    - `get_planting_recommendation` (~line 450)
 4. Define: optimal temperature, water needs, special conditions
-5. Test, commit, push (Railway auto-deploys)
+5. Test, commit, deploy
+
+### Customizing for Your Region
+
+1. **Update crop list:** Add/remove crops relevant to your region
+2. **Adjust thresholds:** Modify temperature/rainfall ranges in crop logic
+3. **Change units:** Adapt temperature (°C/°F) and rainfall (mm/inches) if needed
+4. **Language:** Translate response strings for local language support
 
 ## 🐛 Troubleshooting
 
@@ -235,17 +239,17 @@ cp .env.example .env
 
 ### MCP Connection Failed
 
-1. Test health: `curl https://your-app.up.railway.app/health`
-2. Check Railway logs for errors
-3. Verify CORS allows OpenAI domains
+1. Test health endpoint: `curl https://your-url/health`
+2. Check server logs for errors
+3. Verify CORS allows your AI agent's domain
 4. Ensure URL uses `https://`
 
-### Railway Deployment Issues
+### Deployment Issues
 
-- Verify `GAP_API_TOKEN` set in Railway variables
-- Check Railway build logs
+- Verify `GAP_API_TOKEN` is set in platform's environment variables
+- Check build logs for compilation errors
 - Server must bind to `0.0.0.0` (not `localhost`)
-- Don't hardcode `PORT`
+- Don't hardcode `PORT` - use `process.env.PORT`
 
 ## 📚 Resources
 
@@ -260,6 +264,6 @@ MIT License - see [LICENSE](LICENSE) file
 
 ---
 
-**Built for farmers in Kenya and East Africa 🌾**
+**Open source agricultural intelligence for farmers worldwide 🌾**
 
 [⭐ Star this repo](https://github.com/eagleisbatman/gap-agriculture-mcp)
