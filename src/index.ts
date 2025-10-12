@@ -78,7 +78,7 @@ app.post('/mcp', async (req, res) => {
     });
 
     const server = new McpServer({
-      name: 'GAP Agriculture Intelligence',
+      name: 'gap-agriculture-mcp',
       version: '1.0.0',
       description: 'Real-time weather forecasts and farming advisory for Kenya using TomorrowNow Global Access Platform (GAP)'
     });
