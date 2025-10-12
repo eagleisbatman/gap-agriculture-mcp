@@ -389,19 +389,11 @@ app.post('/mcp', async (req, res) => {
       },
       async ({ latitude, longitude, crop }) => {
         try {
-          // Use header defaults if coordinates not provided
-          const lat = latitude ?? defaultLatitude;
-          const lon = longitude ?? defaultLongitude;
-
-          if (lat === undefined || lon === undefined) {
-            return {
-              content: [{
-                type: 'text',
-                text: 'I need to know your farm location to provide planting recommendations. Please let me know where your farm is located.'
-              }],
-              isError: true
-            };
-          }
+          // Use header defaults if coordinates not provided, fallback to Nairobi coordinates
+          const NAIROBI_LAT = -1.2864;
+          const NAIROBI_LON = 36.8172;
+          const lat = latitude ?? defaultLatitude ?? NAIROBI_LAT;
+          const lon = longitude ?? defaultLongitude ?? NAIROBI_LON;
 
           console.log(`[MCP Tool] get_planting_recommendation called: lat=${lat}, lon=${lon}, crop=${crop}`);
 
