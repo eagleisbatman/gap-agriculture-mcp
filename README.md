@@ -10,29 +10,19 @@ Transforms weather data from [TomorrowNow's Global Access Platform (GAP)](https:
 
 ## ✨ Features
 
-### 4 Agricultural Tools
+### 1 MCP Tool
 
 | Tool | Purpose |
 |------|---------|
-| `get_weather_forecast` | 1-14 day forecasts (temperature, rain, humidity, wind) |
-| `get_planting_recommendation` | YES/NO planting decisions for specific crops |
-| `get_irrigation_advisory` | 7-day irrigation schedules with water balance calculations |
-| `get_farming_advisory` | Comprehensive crop management and risk alerts |
-
-### Supported Crops (22)
-
-**Cereals:** maize, wheat, rice, sorghum, millet
-**Legumes:** beans, cowpea, pigeon_pea, groundnut
-**Roots:** cassava, sweet_potato, potato
-**Vegetables:** tomato, cabbage, kale, onion, vegetables
-**Cash Crops:** tea, coffee, sugarcane, banana, sunflower, cotton
-
-*Note: Crop list currently optimized for East Africa. You can customize the crop list for your region in `src/index.ts`, but remember that weather data availability depends on GAP coverage in your area.*
+| `get_weather_forecast` | Get satellite weather forecast (temperature, rainfall, humidity, wind) for agricultural planning in Kenya and East Africa. Returns up to 14 days of forecast data. |
 
 ### Technical Features
 
 - ✅ Processes 50-member ensemble forecasts into single values
-- ✅ Crop-specific logic (temperature ranges, water requirements)
+- ✅ Input validation for coordinates and dates
+- ✅ 30-second timeout protection (prevents hanging requests)
+- ✅ Response validation and error handling
+- ✅ Graceful shutdown handling (SIGTERM/SIGINT)
 - ✅ Farmer-friendly responses (no technical jargon)
 - ✅ TypeScript for production reliability
 - ✅ StreamableHTTP MCP transport
@@ -47,7 +37,7 @@ Current GAP coverage includes parts of:
 - East Africa (Kenya, Tanzania, Uganda, Ethiopia, Somalia)
 - Other regions may be available - verify at [tomorrownow.org](https://tomorrownow.org)
 
-**Note:** The 22 supported crops can be customized for any region, but the server will only work where GAP provides weather data coverage.
+**Note:** The server provides weather data that can be analyzed by AI agents for any crop or agricultural purpose, but the server will only work where GAP provides weather data coverage.
 
 ## 🏃 Quick Start
 
