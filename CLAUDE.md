@@ -57,7 +57,7 @@ curl http://localhost:3000/health
 
 All defined in `src/index.ts` as `server.tool()` calls:
 
-### 1. get_weather_forecast
+### 1. get_gap_weather_forecast
 **Lines: ~87-167**
 - **Purpose**: Fetch and format weather forecast
 - **Input**: latitude, longitude (optional if in headers), days (1-14)

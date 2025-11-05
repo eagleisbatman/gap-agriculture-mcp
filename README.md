@@ -14,7 +14,7 @@ Transforms weather data from [TomorrowNow's Global Access Platform (GAP)](https:
 
 | Tool | Purpose |
 |------|---------|
-| `get_weather_forecast` | Get satellite weather forecast (temperature, rainfall, humidity, wind) for agricultural planning in Kenya and East Africa. Returns up to 14 days of forecast data. |
+| `get_gap_weather_forecast` | Get satellite weather forecast (temperature, rainfall, humidity, wind) for agricultural planning in Kenya and East Africa. Returns up to 14 days of forecast data. |
 
 ### Technical Features
 
@@ -209,7 +209,7 @@ curl -X POST https://your-mcp-server.com/mcp \
   -H "Content-Type: application/json" \
   -H "X-Farm-Latitude: XX.XXXX" \
   -H "X-Farm-Longitude: YY.YYYY" \
-  -d '{"tool": "get_weather_forecast", "args": {}}'
+  -d '{"tool": "get_gap_weather_forecast", "args": {}}'
 ```
 
 ### User Experience

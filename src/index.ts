@@ -52,7 +52,7 @@ app.get('/', (req, res) => {
       mcp: '/mcp (POST)'
     },
     tools: [
-      'get_weather_forecast'
+      'get_gap_weather_forecast'
     ]
   });
 });
@@ -82,7 +82,7 @@ app.post('/mcp', async (req, res) => {
 
     // Single Tool: Get Weather Forecast
     server.tool(
-      'get_weather_forecast',
+      'get_gap_weather_forecast',
       'Get satellite weather forecast (temperature, rainfall, humidity, wind) for agricultural planning in Kenya and East Africa. Data from TomorrowNow GAP Platform.',
       {
         latitude: z.number().min(-90).max(90).optional().describe('Latitude coordinate (e.g., -1.2864 for Nairobi). Optional if provided in headers.'),
@@ -97,7 +97,7 @@ app.post('/mcp', async (req, res) => {
           const lat = latitude ?? defaultLatitude ?? NAIROBI_LAT;
           const lon = longitude ?? defaultLongitude ?? NAIROBI_LON;
 
-          console.log(`[MCP Tool] get_weather_forecast called: lat=${lat}, lon=${lon}, days=${days}`);
+          console.log(`[MCP Tool] get_gap_weather_forecast called: lat=${lat}, lon=${lon}, days=${days}`);
 
           // Validate coordinates
           if (typeof lat !== 'number' || isNaN(lat) || lat < -90 || lat > 90) {
@@ -189,7 +189,7 @@ app.post('/mcp', async (req, res) => {
             }]
           };
         } catch (error: any) {
-          console.error('[MCP Tool] Error in get_weather_forecast:', error);
+          console.error('[MCP Tool] Error in get_gap_weather_forecast:', error);
           return {
             content: [{
               type: 'text',
@@ -231,7 +231,7 @@ const server = app.listen(Number(PORT), HOST, () => {
   console.log(`📍 Health check: http://localhost:${PORT}/health`);
   console.log(`🌾 MCP endpoint: http://localhost:${PORT}/mcp`);
   console.log(`🔑 GAP API Token: ${GAP_API_TOKEN ? '✅ Configured' : '⚠️  NOT CONFIGURED'}`);
-  console.log(`🛠️  Tools: 1 (get_weather_forecast - up to 14 days)`);
+  console.log(`🛠️  Tools: 1 (get_gap_weather_forecast - up to 14 days)`);
   console.log('=========================================');
   console.log('📝 Agent analyzes weather data for farming advice');
   console.log('=========================================');
