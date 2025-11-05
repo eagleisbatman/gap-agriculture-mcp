@@ -46,7 +46,7 @@ app.get('/', (req, res) => {
   res.json({
     service: 'GAP Agriculture MCP Server',
     version: '2.0.0',
-    description: 'Weather intelligence powered by TomorrowNow GAP API - Simplified version with intelligent Agent analysis',
+    description: 'Weather intelligence powered by TomorrowNow GAP API with intelligent Agent analysis',
     endpoints: {
       health: '/health',
       mcp: '/mcp (POST)'
@@ -225,7 +225,7 @@ const server = app.listen(Number(PORT), HOST, () => {
   console.log('');
   console.log('🚀 =========================================');
   console.log('   GAP Weather Intelligence MCP Server');
-  console.log('   Simplified Version 2.0');
+  console.log('   Version 2.0');
   console.log('=========================================');
   console.log(`✅ Server running on ${HOST}:${PORT}`);
   console.log(`📍 Health check: http://localhost:${PORT}/health`);

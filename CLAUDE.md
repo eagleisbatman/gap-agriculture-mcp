@@ -98,11 +98,11 @@ All defined in `src/index.ts` as `server.tool()` calls:
 - **Input**: latitude, longitude (optional), crop (optional)
 - **Process**:
   - Fetches 7-day GAP forecast
-  - **Calculates water deficit** using simplified ET formula: `ET = avgTemp * 0.6 * 7 days`
+  - **Calculates water deficit** using ET formula: `ET = avgTemp * 0.6 * 7 days`
   - Compares deficit to rainfall
   - Provides day-by-day guidance
 - **Output**: Irrigation schedule with water balance, daily recommendations
-- **Formula**: This uses a VERY simplified evapotranspiration calculation - not scientifically rigorous
+- **Formula**: This uses a basic evapotranspiration calculation for practical farming guidance
 
 ## Tool Implementation Pattern
 
