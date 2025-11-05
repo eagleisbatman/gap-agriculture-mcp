@@ -3,10 +3,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
+[![Railway](https://railway.app/button.svg)](https://railway.app)
 
-**Model Context Protocol (MCP) server providing agriculture weather intelligence.**
+**Model Context Protocol (MCP) server providing agriculture weather intelligence for Kenya and East Africa.**
 
-Transforms weather data from [TomorrowNow's Global Access Platform (GAP)](https://tomorrownow.org) into actionable agricultural advice: weather forecasts, planting decisions, irrigation schedules, and farming guidance.
+Transforms weather data from [TomorrowNow's Global Access Platform (GAP)](https://tomorrownow.org) into actionable agricultural advice: weather forecasts, planting decisions, irrigation schedules, and farming guidance. Processes 50-member ensemble forecasts into farmer-friendly insights. Designed for integration with AI agents via OpenAI Agent Builder.
 
 ## ✨ Features
 
