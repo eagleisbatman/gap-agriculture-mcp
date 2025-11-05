@@ -167,6 +167,17 @@ export class GAPClient {
    * @throws Error if API request fails or returns invalid data
    */
   async getMeasurement(params: GAPMeasurementParams): Promise<GAPResponse> {
+    // Validate inputs
+    if (typeof params.lat !== 'number' || isNaN(params.lat) || params.lat < -90 || params.lat > 90) {
+      throw new Error(`Invalid latitude: ${params.lat}`);
+    }
+    if (typeof params.lon !== 'number' || isNaN(params.lon) || params.lon < -180 || params.lon > 180) {
+      throw new Error(`Invalid longitude: ${params.lon}`);
+    }
+    if (!params.start_date || !params.end_date) {
+      throw new Error('Start date and end date are required');
+    }
+
     // Build the API request URL
     const url = new URL(`${this.baseUrl}/measurement/`);
 
@@ -177,21 +188,57 @@ export class GAPClient {
 
     console.log(`[GAP API] Fetching: ${url.toString()}`);
 
-    // Make authenticated request to GAP API
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        'Authorization': `Token ${this.apiToken}` // GAP uses Token-based auth
-      }
-    });
+    // Make authenticated request to GAP API with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-    // Handle API errors
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`GAP API error: ${response.status} ${response.statusText} - ${errorText}`);
+    try {
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Token ${this.apiToken}`, // GAP uses Token-based auth
+          'User-Agent': 'GAP-MCP-Server/2.0.0'
+        },
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      // Handle API errors
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`GAP API error (${response.status}): ${errorText || response.statusText}`);
+      }
+
+      return await this.parseResponse(response);
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout: GAP API took too long to respond (30s limit)');
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Parse and validate API response
+   */
+  private async parseResponse(response: Response): Promise<GAPResponse> {
+    let rawData: GAPRawResponse;
+    try {
+      rawData = await response.json() as GAPRawResponse;
+    } catch (parseError) {
+      throw new Error(`Failed to parse API response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
     }
 
-    const rawData = await response.json() as GAPRawResponse;
+    // Validate response structure
+    if (!rawData || typeof rawData !== 'object') {
+      throw new Error('Invalid API response format: expected object');
+    }
+
+    if (!rawData.results || !Array.isArray(rawData.results)) {
+      throw new Error('Invalid API response: missing results array');
+    }
 
     //  =================================================================
     //  DATA TRANSFORMATION SECTION

@@ -99,6 +99,35 @@ app.post('/mcp', async (req, res) => {
 
           console.log(`[MCP Tool] get_weather_forecast called: lat=${lat}, lon=${lon}, days=${days}`);
 
+          // Validate coordinates
+          if (typeof lat !== 'number' || isNaN(lat) || lat < -90 || lat > 90) {
+            return {
+              content: [{
+                type: 'text',
+                text: 'Invalid latitude coordinate. Please provide a valid latitude between -90 and 90.'
+              }],
+              isError: true
+            };
+          }
+          if (typeof lon !== 'number' || isNaN(lon) || lon < -180 || lon > 180) {
+            return {
+              content: [{
+                type: 'text',
+                text: 'Invalid longitude coordinate. Please provide a valid longitude between -180 and 180.'
+              }],
+              isError: true
+            };
+          }
+          if (typeof days !== 'number' || days < 1 || days > 14) {
+            return {
+              content: [{
+                type: 'text',
+                text: 'Invalid number of days. Please provide a value between 1 and 14.'
+              }],
+              isError: true
+            };
+          }
+
           if (!gapClient) {
             return {
               content: [{
@@ -192,7 +221,7 @@ app.post('/mcp', async (req, res) => {
 
 // Start server
 const HOST = '0.0.0.0';
-app.listen(Number(PORT), HOST, () => {
+const server = app.listen(Number(PORT), HOST, () => {
   console.log('');
   console.log('🚀 =========================================');
   console.log('   GAP Weather Intelligence MCP Server');
@@ -207,4 +236,21 @@ app.listen(Number(PORT), HOST, () => {
   console.log('📝 Agent analyzes weather data for farming advice');
   console.log('=========================================');
   console.log('');
+});
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
 });
