@@ -13,7 +13,7 @@
  * @module gap-client
  */
 
-import fetch from 'node-fetch';
+import fetch, { Response } from 'node-fetch';
 
 /**
  * Parameters for GAP API measurement requests
