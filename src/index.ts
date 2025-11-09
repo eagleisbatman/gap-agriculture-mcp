@@ -190,10 +190,26 @@ app.post('/mcp', async (req, res) => {
           };
         } catch (error: any) {
           console.error('[MCP Tool] Error in get_gap_weather_forecast:', error);
+          console.error('[MCP Tool] Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          });
+          
+          // Provide more specific error message if available
+          let errorMessage = `I'm having trouble getting weather data right now. Try again in a moment?`;
+          if (error.message && error.message.includes('410')) {
+            errorMessage = `The weather data service endpoint is no longer available. Please contact support.`;
+          } else if (error.message && error.message.includes('401')) {
+            errorMessage = `Weather data service authentication failed. Please check API credentials.`;
+          } else if (error.message && error.message.includes('timeout')) {
+            errorMessage = `Weather data service took too long to respond. Please try again.`;
+          }
+          
           return {
             content: [{
               type: 'text',
-              text: `I'm having trouble getting weather data right now. Try again in a moment?`
+              text: errorMessage
             }],
             isError: true
           };
