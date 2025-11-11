@@ -150,15 +150,43 @@ app.post('/mcp', async (req, res) => {
             };
           }
 
+          const toNumber = (value: unknown, multiplier = 1) => {
+            if (typeof value === 'number' && Number.isFinite(value)) {
+              return Number((value * multiplier).toFixed(1));
+            }
+
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? Number((parsed * multiplier).toFixed(1)) : null;
+          };
+
+          const buildAverage = (values: Array<number | null>, total = false) => {
+            const filtered = values.filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+            if (!filtered.length) {
+              return null;
+            }
+
+            const aggregate = filtered.reduce((sum, val) => sum + val, 0);
+            const result = total ? aggregate : aggregate / filtered.length;
+            return Number(result.toFixed(1));
+          };
+
           // Format as clean JSON for Agent to analyze
-          const forecast = data.results.map((day) => ({
-            date: day.date,
-            max_temp: Number(day.max_temperature).toFixed(1),
-            min_temp: Number(day.min_temperature).toFixed(1),
-            precipitation: Number(day.precipitation).toFixed(1),
-            humidity: (Number(day.relative_humidity) * 100).toFixed(1),
-            wind_speed: Number(day.wind_speed).toFixed(1)
-          }));
+          const forecast = data.results.map((day) => {
+            const maxTemp = toNumber(day.max_temperature);
+            const minTemp = toNumber(day.min_temperature);
+            const precipitation = toNumber(day.precipitation);
+            const humidity = toNumber(day.relative_humidity, 100);
+            const windSpeed = toNumber(day.wind_speed);
+
+            return {
+              date: day.date,
+              max_temp: maxTemp,
+              min_temp: minTemp,
+              precipitation,
+              humidity,
+              wind_speed: windSpeed
+            };
+          });
 
           // Return structured data that Agent can analyze intelligently
           const response = {
@@ -174,10 +202,10 @@ app.post('/mcp', async (req, res) => {
             },
             forecast: forecast,
             summary: {
-              avg_max_temp: (forecast.reduce((sum, d) => sum + parseFloat(d.max_temp), 0) / forecast.length).toFixed(1),
-              avg_min_temp: (forecast.reduce((sum, d) => sum + parseFloat(d.min_temp), 0) / forecast.length).toFixed(1),
-              total_precipitation: forecast.reduce((sum, d) => sum + parseFloat(d.precipitation), 0).toFixed(1),
-              avg_humidity: (forecast.reduce((sum, d) => sum + parseFloat(d.humidity), 0) / forecast.length).toFixed(1)
+              avg_max_temp: buildAverage(forecast.map(d => d.max_temp ?? null)),
+              avg_min_temp: buildAverage(forecast.map(d => d.min_temp ?? null)),
+              total_precipitation: buildAverage(forecast.map(d => d.precipitation ?? null), true),
+              avg_humidity: buildAverage(forecast.map(d => d.humidity ?? null))
             },
             data_source: 'TomorrowNow GAP Platform (satellite-based)'
           };
