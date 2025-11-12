@@ -170,6 +170,20 @@ app.post('/mcp', async (req, res) => {
             return Number(result.toFixed(1));
           };
 
+          // Log sample of raw data to debug null values
+          if (data.results.length > 0) {
+            const sampleDay = data.results[0];
+            console.log('[MCP Tool] Sample day data:', {
+              date: sampleDay.date,
+              max_temperature: sampleDay.max_temperature,
+              min_temperature: sampleDay.min_temperature,
+              precipitation: sampleDay.precipitation,
+              relative_humidity: sampleDay.relative_humidity,
+              wind_speed: sampleDay.wind_speed,
+              allKeys: Object.keys(sampleDay)
+            });
+          }
+
           // Format as clean JSON for Agent to analyze
           const forecast = data.results.map((day) => {
             const maxTemp = toNumber(day.max_temperature);
@@ -187,6 +201,19 @@ app.post('/mcp', async (req, res) => {
               wind_speed: windSpeed
             };
           });
+
+          // Check if all values are null - this indicates GAP API returned no data
+          const allNull = forecast.every(day => 
+            day.max_temp === null && 
+            day.min_temp === null && 
+            day.precipitation === null && 
+            day.humidity === null && 
+            day.wind_speed === null
+          );
+
+          if (allNull) {
+            console.warn('[MCP Tool] ⚠️  All forecast values are null - GAP API may not have data for these dates');
+          }
 
           // Return structured data that Agent can analyze intelligently
           const response = {

@@ -210,7 +210,18 @@ export class GAPClient {
         throw new Error(`GAP API error (${response.status}): ${errorText || response.statusText}`);
       }
 
-      return await this.parseResponse(response);
+      // Get response text for logging and parsing
+      const responseText = await response.text();
+      
+      // Log raw response for debugging (first 2000 chars)
+      console.log(`[GAP API] Raw response preview (first 2000 chars):`, responseText.substring(0, 2000));
+      
+      // Parse and return
+      return await this.parseResponse(new Response(responseText, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers
+      }));
     } catch (error: any) {
       clearTimeout(timeoutId);
       if (error.name === 'AbortError') {
@@ -291,18 +302,22 @@ export class GAPClient {
             // Handle ensemble forecasts (arrays of 50 values)
             if (Array.isArray(value)) {
               // Flatten array and filter to only numbers
-              allValues.push(...value.filter(v => typeof v === 'number'));
+              const numericValues = value.filter(v => typeof v === 'number' && !isNaN(v));
+              allValues.push(...numericValues);
             }
             // Handle single values (historical data)
-            else if (typeof value === 'number') {
+            else if (typeof value === 'number' && !isNaN(value)) {
               allValues.push(value);
             }
-            // Skip non-numeric values (strings, etc.)
+            // Skip non-numeric values (strings, null, undefined, etc.)
           });
 
           // Calculate mean of all collected values
           if (allValues.length > 0) {
             transformed[attr] = allValues.reduce((sum, v) => sum + v, 0) / allValues.length;
+          } else {
+            // Log when attribute has no valid values
+            console.log(`[GAP API] Attribute '${attr}' has no valid numeric values for date ${date}`);
           }
         });
 
